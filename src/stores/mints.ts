@@ -24,6 +24,7 @@ export class MintClass {
   get proofs() {
     const mintStore = useMintsStore();
     mintStore.init();
+    console.log("Initialize Mint: ", mintStore.proofs);
     return mintStore.proofs.filter((p) => this.mint.keysets.map((k) => k.id).includes(p.id));
   }
   // get balance() {
@@ -168,8 +169,14 @@ export const useMintsStore = defineStore("mints", {
     async init() {
       if (!this.ready) {
         try {
-          await this.activateMintUrl(this.activeMintUrl, true, false);
-          this.ready = true; // Ensure this only runs once
+          // Add default mint if not already added
+          if (!this.mints.some((mint) => mint.url === "https://forge.flashapp.me")) {
+            await this.addMint({ url: "https://forge.flashapp.me", nickname: "Flash" }, true);
+          }
+  
+          // Activate the mint after adding it
+          await this.activateMintUrl("https://forge.flashapp.me", true, false);
+          this.ready = true; // Mark initialization as complete
         } catch (error) {
           console.error("Failed to activate the default mint:", error);
         }
