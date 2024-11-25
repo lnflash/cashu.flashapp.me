@@ -82,14 +82,14 @@ export const useMintsStore = defineStore("mints", {
   state: () => {
     return {
       activeUnit: useLocalStorage<string>("cashu.activeUnit", "sat"),
-      activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", "https://ecash.flashapp.me"),
+      activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", "https://forge.flashapp.me"),
       addMintData: {
         url: "",
         nickname: "",
       },
       mints: useLocalStorage("cashu.mints", [
         {
-          url: "https://ecash.flashapp.me",
+          url: "https://forge.flashapp.me",
           keys: [],
           keysets: [],
           nickname: "Default Mint",

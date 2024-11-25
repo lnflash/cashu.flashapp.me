@@ -1,8 +1,8 @@
 {
   "name": "cashu",
-  "version": "0.0.1",
-  "description": "Cashu.me Wallet",
-  "productName": "Cashu.me",
+  "version": "0.0.2",
+  "description": "Flash eCash Wallet",
+  "productName": "Flash eCash",
   "author": "cashu.me",
   "private": true,
   "scripts": {
