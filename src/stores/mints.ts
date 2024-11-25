@@ -23,7 +23,7 @@ export class MintClass {
   }
   get proofs() {
     const mintStore = useMintsStore();
-    // mintStore.init();
+    mintStore.init();
     return mintStore.proofs.filter((p) => this.mint.keysets.map((k) => k.id).includes(p.id));
   }
   // get balance() {
@@ -86,15 +86,15 @@ export const useMintsStore = defineStore("mints", {
       activeUnit: useLocalStorage<string>("cashu.activeUnit", "sat"),
       activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", "https://forge.flashapp.me"),
       addMintData: {
-        url: "",
-        nickname: "",
+        url: "https://forge.flashapp.me",
+        nickname: "Flash",
       },
       mints: useLocalStorage("cashu.mints", [
         {
           url: "https://forge.flashapp.me",
           keys: [],
           keysets: [],
-          nickname: "Default Mint",
+          nickname: "Flash",
         },
       ] as Mint[]),
       proofs: useLocalStorage("cashu.proofs", [] as WalletProof[]),
