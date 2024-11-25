@@ -23,6 +23,7 @@ export class MintClass {
   }
   get proofs() {
     const mintStore = useMintsStore();
+    mintStore.init();
     return mintStore.proofs.filter((p) => this.mint.keysets.map((k) => k.id).includes(p.id));
   }
   // get balance() {
@@ -81,6 +82,7 @@ type BlindSignatureAudit = {
 export const useMintsStore = defineStore("mints", {
   state: () => {
     return {
+      ready: false,
       activeUnit: useLocalStorage<string>("cashu.activeUnit", "sat"),
       activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", "https://forge.flashapp.me"),
       addMintData: {
@@ -163,6 +165,16 @@ export const useMintsStore = defineStore("mints", {
     },
   },
   actions: {
+    async init() {
+      if (!this.ready) {
+        try {
+          await this.activateMintUrl(this.activeMintUrl, true, false);
+          this.ready = true; // Ensure this only runs once
+        } catch (error) {
+          console.error("Failed to activate the default mint:", error);
+        }
+      }
+    },
     activeMint() {
       const mint = this.mints.find((m) => m.url === this.activeMintUrl);
       if (mint) {
