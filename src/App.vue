@@ -6,10 +6,10 @@
 import { onMounted } from 'vue';
 import { useMintsStore } from './stores/mints';
 
-const mintsStore = useMintsStore();
+const mintStore = useMintsStore();
 
-onMounted(() => {
-  mintsStore.init();
+onMounted(async () => {
+  await mintStore.init();
 });
 </script>
 
