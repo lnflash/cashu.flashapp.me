@@ -85,19 +85,12 @@ export const useMintsStore = defineStore("mints", {
     return {
       ready: false,
       activeUnit: useLocalStorage<string>("cashu.activeUnit", "sat"),
-      activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", "https://forge.flashapp.me"),
+      activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", ""),
       addMintData: {
         url: "https://forge.flashapp.me",
         nickname: "Flash",
       },
-      mints: useLocalStorage("cashu.mints", [
-        {
-          url: "https://forge.flashapp.me",
-          keys: [],
-          keysets: [],
-          nickname: "Flash",
-        },
-      ] as Mint[]),
+      mints: useLocalStorage("cashu.mints", [] as Mint[]),
       proofs: useLocalStorage("cashu.proofs", [] as WalletProof[]),
       blindSignatures: useLocalStorage("cashu.blindSignatures", [] as BlindSignatureAudit[]),
       // balances: useLocalStorage("cashu.balances", {} as Balances),
@@ -173,9 +166,6 @@ export const useMintsStore = defineStore("mints", {
           if (!this.mints.some((mint) => mint.url === "https://forge.flashapp.me")) {
             await this.addMint({ url: "https://forge.flashapp.me", nickname: "Flash" }, true);
           }
-  
-          // Activate the mint after adding it
-          await this.activateMintUrl("https://forge.flashapp.me", true, false);
           this.ready = true; // Mark initialization as complete
         } catch (error) {
           console.error("Failed to activate the default mint:", error);
