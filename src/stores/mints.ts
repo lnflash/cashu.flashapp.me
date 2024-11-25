@@ -82,12 +82,19 @@ export const useMintsStore = defineStore("mints", {
   state: () => {
     return {
       activeUnit: useLocalStorage<string>("cashu.activeUnit", "sat"),
-      activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", ""),
+      activeMintUrl: useLocalStorage<string>("cashu.activeMintUrl", "https://ecash.flashapp.me"),
       addMintData: {
         url: "",
         nickname: "",
       },
-      mints: useLocalStorage("cashu.mints", [] as Mint[]),
+      mints: useLocalStorage("cashu.mints", [
+        {
+          url: "https://ecash.flashapp.me",
+          keys: [],
+          keysets: [],
+          nickname: "Default Mint",
+        },
+      ] as Mint[]),
       proofs: useLocalStorage("cashu.proofs", [] as WalletProof[]),
       blindSignatures: useLocalStorage("cashu.blindSignatures", [] as BlindSignatureAudit[]),
       // balances: useLocalStorage("cashu.balances", {} as Balances),
