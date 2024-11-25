@@ -23,6 +23,7 @@ export class MintClass {
   }
   get proofs() {
     const mintStore = useMintsStore();
+    // mintStore.init();
     return mintStore.proofs.filter((p) => this.mint.keysets.map((k) => k.id).includes(p.id));
   }
   // get balance() {

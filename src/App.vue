@@ -2,8 +2,8 @@
   <router-view />
 </template>
 
-<script>
-import { defineComponent } from "vue";
+<script setup>
+import { onMounted } from 'vue';
 import { useMintsStore } from './stores/mints';
 
 const mintsStore = useMintsStore();
@@ -11,8 +11,12 @@ const mintsStore = useMintsStore();
 onMounted(() => {
   mintsStore.init();
 });
+</script>
+
+<script>
+import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: "App",
+  name: 'App',
 });
 </script>
