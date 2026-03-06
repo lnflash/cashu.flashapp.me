@@ -12,6 +12,9 @@ RUN npm install
 # Copy the application code to the container
 COPY . .
 
+# Increase Node.js heap size for the build to prevent OOM errors
+ENV NODE_OPTIONS="--max-old-space-size=1536"
+
 # Build the PWA (replace 'npm run build' with your actual build command)
 RUN npm run build:pwa
 
