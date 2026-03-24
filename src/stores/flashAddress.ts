@@ -14,11 +14,11 @@ export const useFlashAddressStore = defineStore("flashAddress", {
     enabled: useLocalStorage<boolean>("cashu.flashAddress.enabled", false),
     lastCheck: useLocalStorage<number | null>(
       "cashu.flashAddress.lastCheck",
-      null,
+      null
     ),
     automaticClaim: useLocalStorage<boolean>(
       "cashu.flashAddress.automaticClaim",
-      true,
+      true
     ),
     loading: false,
   }),
@@ -31,7 +31,7 @@ export const useFlashAddressStore = defineStore("flashAddress", {
     privkeyHex(): string {
       try {
         const stored = localStorage.getItem(
-          "cashu.ndk.privateKeySignerPrivateKey",
+          "cashu.ndk.privateKeySignerPrivateKey"
         );
         if (!stored) return "";
         const val = JSON.parse(stored);
@@ -72,7 +72,7 @@ export const useFlashAddressStore = defineStore("flashAddress", {
         if (!data.token || data.balance === 0) return;
 
         console.log(
-          `[flashAddress] ${data.balance} sats pending for ${this.username}`,
+          `[flashAddress] ${data.balance} sats pending for ${this.username}`
         );
 
         // Guard: don't re-claim tokens already in history

@@ -61,7 +61,7 @@ export const useWorkersStore = defineStore("workers", {
       const settingsStore = useSettingsStore();
       if (!settingsStore.checkSentTokens) {
         console.log(
-          "settingsStore.checkSentTokens is disabled, not kicking off checkTokenSpendableWorker",
+          "settingsStore.checkSentTokens is disabled, not kicking off checkTokenSpendableWorker"
         );
         return;
       }
@@ -82,7 +82,7 @@ export const useWorkersStore = defineStore("workers", {
           console.log("### checkTokenSpendableWorker setInterval", nInterval);
           const paid = await walletStore.checkTokenSpendable(
             historyToken,
-            false,
+            false
           );
           if (paid) {
             console.log("### stopping token check worker");
