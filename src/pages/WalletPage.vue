@@ -379,7 +379,12 @@ export default {
       "setProofs",
       "getKeysForKeyset",
     ]),
-    ...mapActions(useWorkersStore, ["clearAllWorkers", "invoiceCheckWorker", "startFlashAddressWorker", "stopFlashAddressWorker"]),
+    ...mapActions(useWorkersStore, [
+      "clearAllWorkers",
+      "invoiceCheckWorker",
+      "startFlashAddressWorker",
+      "stopFlashAddressWorker",
+    ]),
     ...mapActions(useTokensStore, ["setTokenPaid"]),
     ...mapActions(useWalletStore, [
       "setInvoicePaid",
@@ -525,13 +530,13 @@ export default {
         this.deferredPWAInstallPrompt = e;
         console.log(
           `'beforeinstallprompt' event was fired.`,
-          this.getPwaDisplayMode()
+          this.getPwaDisplayMode(),
         );
       });
     },
     getPwaDisplayMode: function () {
       const isStandalone = window.matchMedia(
-        "(display-mode: standalone)"
+        "(display-mode: standalone)",
       ).matches;
       if (document.referrer.startsWith("android-app://")) {
         return "twa";
@@ -560,7 +565,7 @@ export default {
         sessionStorage.setItem(
           "tabId",
           Math.random().toString(36).substring(2) +
-            new Date().getTime().toString(36)
+            new Date().getTime().toString(36),
         );
       }
       const tabId = sessionStorage.getItem("tabId");

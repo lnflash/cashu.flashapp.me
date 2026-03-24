@@ -12,8 +12,14 @@ export const useFlashAddressStore = defineStore("flashAddress", {
   state: () => ({
     username: useLocalStorage<string>("cashu.flashAddress.username", ""),
     enabled: useLocalStorage<boolean>("cashu.flashAddress.enabled", false),
-    lastCheck: useLocalStorage<number | null>("cashu.flashAddress.lastCheck", null),
-    automaticClaim: useLocalStorage<boolean>("cashu.flashAddress.automaticClaim", true),
+    lastCheck: useLocalStorage<number | null>(
+      "cashu.flashAddress.lastCheck",
+      null,
+    ),
+    automaticClaim: useLocalStorage<boolean>(
+      "cashu.flashAddress.automaticClaim",
+      true,
+    ),
     loading: false,
   }),
 
@@ -24,7 +30,9 @@ export const useFlashAddressStore = defineStore("flashAddress", {
     },
     privkeyHex(): string {
       try {
-        const stored = localStorage.getItem("cashu.ndk.privateKeySignerPrivateKey");
+        const stored = localStorage.getItem(
+          "cashu.ndk.privateKeySignerPrivateKey",
+        );
         if (!stored) return "";
         const val = JSON.parse(stored);
         return typeof val === "string" && val.length === 64 ? val : "";
@@ -63,11 +71,15 @@ export const useFlashAddressStore = defineStore("flashAddress", {
 
         if (!data.token || data.balance === 0) return;
 
-        console.log(`[flashAddress] ${data.balance} sats pending for ${this.username}`);
+        console.log(
+          `[flashAddress] ${data.balance} sats pending for ${this.username}`,
+        );
 
         // Guard: don't re-claim tokens already in history
         const tokensStore = useTokensStore();
-        if (tokensStore.historyTokens.find((t: any) => t.token === data.token)) {
+        if (
+          tokensStore.historyTokens.find((t: any) => t.token === data.token)
+        ) {
           console.log("[flashAddress] token already in history, skipping");
           return;
         }
@@ -75,7 +87,9 @@ export const useFlashAddressStore = defineStore("flashAddress", {
         // Decode token to get amount/mint/unit
         const decoded = token.decode(data.token);
         if (!decoded) return;
-        const amount = token.getProofs(decoded).reduce((s: number, p: any) => s + p.amount, 0);
+        const amount = token
+          .getProofs(decoded)
+          .reduce((s: number, p: any) => s + p.amount, 0);
         const mintUrl = token.getMint(decoded);
         const unit = (token.getUnit(decoded) as string) || "sat";
 

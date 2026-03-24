@@ -53,33 +53,65 @@
               </div>
             </div>
 
-          <div v-if="flashStore.enabled" class="action-row" @click="toggleFlashAddressPanel">
-            <div class="row items-center no-wrap">
-              <div class="icon-circle" style="background:rgba(167,139,250,0.15)">
-                <ZapIcon :size="24" style="color:#a78bfa" />
+            <div
+              v-if="flashStore.enabled"
+              class="action-row"
+              @click="toggleFlashAddressPanel"
+            >
+              <div class="row items-center no-wrap">
+                <div
+                  class="icon-circle"
+                  style="background: rgba(167, 139, 250, 0.15)"
+                >
+                  <ZapIcon :size="24" style="color: #a78bfa" />
+                </div>
+                <div class="col q-ml-md">
+                  <div class="text-body1 text-weight-medium">Flash Address</div>
+                  <div class="text-caption text-grey-5">
+                    {{ flashStore.address }}
+                  </div>
+                </div>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  @click.stop="copyFlashAddress"
+                  color="primary"
+                  style="opacity: 0.7"
+                >
+                  <CopyIcon :size="18" />
+                </q-btn>
               </div>
-              <div class="col q-ml-md">
-                <div class="text-body1 text-weight-medium">Flash Address</div>
-                <div class="text-caption text-grey-5">{{ flashStore.address }}</div>
-              </div>
-              <q-btn flat round dense @click.stop="copyFlashAddress" color="primary" style="opacity:0.7">
-                <CopyIcon :size="18" />
-              </q-btn>
             </div>
-          </div>
 
-          <!-- Flash Address QR panel -->
-          <div v-if="showFlashPanel && flashStore.enabled" class="q-pa-md" style="background:rgba(167,139,250,0.08);border-radius:12px;text-align:center;">
-            <vue-qrcode
-              :value="flashStore.address"
-              :options="{ width: 180, margin: 1, color: { dark: '#ffffff', light: '#00000000' } }"
-              tag="img"
-              class="q-mb-xs"
-              style="display:inline-block;border-radius:8px;"
-            />
-            <div class="text-caption text-grey-4 q-mt-xs">{{ flashStore.address }}</div>
-            <div class="text-caption text-grey-6 q-mt-xs">Pay from any Lightning wallet</div>
-          </div>
+            <!-- Flash Address QR panel -->
+            <div
+              v-if="showFlashPanel && flashStore.enabled"
+              class="q-pa-md"
+              style="
+                background: rgba(167, 139, 250, 0.08);
+                border-radius: 12px;
+                text-align: center;
+              "
+            >
+              <vue-qrcode
+                :value="flashStore.address"
+                :options="{
+                  width: 180,
+                  margin: 1,
+                  color: { dark: '#ffffff', light: '#00000000' },
+                }"
+                tag="img"
+                class="q-mb-xs"
+                style="display: inline-block; border-radius: 8px"
+              />
+              <div class="text-caption text-grey-4 q-mt-xs">
+                {{ flashStore.address }}
+              </div>
+              <div class="text-caption text-grey-6 q-mt-xs">
+                Pay from any Lightning wallet
+              </div>
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -146,7 +178,9 @@ export default defineComponent({
     ]),
     ...mapWritableState(useWalletStore, ["invoiceData"]),
     ...mapState(useMintsStore, ["mints"]),
-flashStore: function () { return useFlashAddressStore(); },
+    flashStore: function () {
+      return useFlashAddressStore();
+    },
     canReceivePayments: function () {
       if (!this.mints.length) {
         return false;
@@ -169,7 +203,7 @@ flashStore: function () { return useFlashAddressStore(); },
     showInvoiceCreateDialog: async function () {
       if (!this.canReceivePayments) {
         notifyWarning(
-          this.$i18n.t("ReceiveDialog.actions.lightning.error_no_mints")
+          this.$i18n.t("ReceiveDialog.actions.lightning.error_no_mints"),
         );
         this.showReceiveDialog = false;
         return;
