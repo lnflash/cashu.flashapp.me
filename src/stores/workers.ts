@@ -12,6 +12,9 @@ export const useWorkersStore = defineStore("workers", {
       invoiceWorkerRunning: false,
       tokenWorkerRunning: false,
       checkInterval: 5000,
+      flashAddressListener: null as NodeJS.Timeout | null,
+      flashAddressWorkerRunning: false,
+      flashAddressPollInterval: 30000,
     };
   },
   getters: {},
@@ -91,6 +94,26 @@ export const useWorkersStore = defineStore("workers", {
           this.clearAllWorkers();
         }
       }, this.checkInterval);
+    },
+    startFlashAddressWorker: async function () {
+      const { useFlashAddressStore } = await import("./flashAddress");
+      const flashStore = useFlashAddressStore();
+      if (!flashStore.enabled || this.flashAddressListener) return;
+      console.log("[workers] starting flashAddress poll worker");
+      this.flashAddressWorkerRunning = true;
+      // Run immediately on start, then every 30s
+      await flashStore.claimPending();
+      this.flashAddressListener = setInterval(async () => {
+        await flashStore.claimPending();
+      }, this.flashAddressPollInterval);
+    },
+    stopFlashAddressWorker: function () {
+      if (this.flashAddressListener) {
+        clearInterval(this.flashAddressListener);
+        this.flashAddressListener = null;
+        this.flashAddressWorkerRunning = false;
+        console.log("[workers] stopped flashAddress poll worker");
+      }
     },
   },
 });

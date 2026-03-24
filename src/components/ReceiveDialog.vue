@@ -52,6 +52,34 @@
                 </div>
               </div>
             </div>
+
+          <div v-if="flashStore.enabled" class="action-row" @click="toggleFlashAddressPanel">
+            <div class="row items-center no-wrap">
+              <div class="icon-circle" style="background:rgba(167,139,250,0.15)">
+                <ZapIcon :size="24" style="color:#a78bfa" />
+              </div>
+              <div class="col q-ml-md">
+                <div class="text-body1 text-weight-medium">Flash Address</div>
+                <div class="text-caption text-grey-5">{{ flashStore.address }}</div>
+              </div>
+              <q-btn flat round dense @click.stop="copyFlashAddress" color="primary" style="opacity:0.7">
+                <CopyIcon :size="18" />
+              </q-btn>
+            </div>
+          </div>
+
+          <!-- Flash Address QR panel -->
+          <div v-if="showFlashPanel && flashStore.enabled" class="q-pa-md" style="background:rgba(167,139,250,0.08);border-radius:12px;text-align:center;">
+            <vue-qrcode
+              :value="flashStore.address"
+              :options="{ width: 180, margin: 1, color: { dark: '#ffffff', light: '#00000000' } }"
+              tag="img"
+              class="q-mb-xs"
+              style="display:inline-block;border-radius:8px;"
+            />
+            <div class="text-caption text-grey-4 q-mt-xs">{{ flashStore.address }}</div>
+            <div class="text-caption text-grey-6 q-mt-xs">Pay from any Lightning wallet</div>
+          </div>
           </div>
         </div>
       </q-card-section>
@@ -80,7 +108,10 @@ import {
   Coins as CoinsIcon,
   Zap as ZapIcon,
   Scan as ScanIcon,
+  Copy as CopyIcon,
 } from "lucide-vue-next";
+import VueQrcode from "@chenfengyuan/vue-qrcode";
+import { useFlashAddressStore } from "src/stores/flashAddress";
 
 export default defineComponent({
   name: "ReceiveDialog",
@@ -89,7 +120,9 @@ export default defineComponent({
     CoinsIcon,
     ZapIcon,
     ScanIcon,
+    CopyIcon,
     ReceiveEcashDrawer,
+    VueQrcode,
   },
   mixins: [windowMixin],
   props: {},
@@ -97,6 +130,7 @@ export default defineComponent({
     return {
       currentPage: 1,
       pageSize: 5,
+      showFlashPanel: false,
     };
   },
   computed: {
@@ -112,6 +146,7 @@ export default defineComponent({
     ]),
     ...mapWritableState(useWalletStore, ["invoiceData"]),
     ...mapState(useMintsStore, ["mints"]),
+flashStore: function () { return useFlashAddressStore(); },
     canReceivePayments: function () {
       if (!this.mints.length) {
         return false;
@@ -148,6 +183,15 @@ export default defineComponent({
       this.showReceiveDialog = false;
     },
     ...mapActions(useCameraStore, ["closeCamera", "showCamera"]),
+    toggleFlashAddressPanel: function () {
+      this.showFlashPanel = !this.showFlashPanel;
+    },
+    copyFlashAddress: function () {
+      const { notifySuccess } = require("src/js/notify.ts");
+      navigator.clipboard.writeText(this.flashStore.address).then(() => {
+        notifySuccess("Address copied!");
+      });
+    },
   },
   created: function () {},
 });

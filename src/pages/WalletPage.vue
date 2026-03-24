@@ -237,6 +237,7 @@ import { useP2PKStore } from "src/stores/p2pk";
 import { useNWCStore } from "src/stores/nwc";
 import { useNPCStore } from "src/stores/npubcash";
 import { useNPCV2Store } from "src/stores/npcv2";
+import { useFlashAddressStore } from "src/stores/flashAddress";
 import { useNostrStore } from "src/stores/nostr";
 import { usePRStore } from "src/stores/payment-request";
 import { useDexieStore } from "src/stores/dexie";
@@ -378,7 +379,7 @@ export default {
       "setProofs",
       "getKeysForKeyset",
     ]),
-    ...mapActions(useWorkersStore, ["clearAllWorkers", "invoiceCheckWorker"]),
+    ...mapActions(useWorkersStore, ["clearAllWorkers", "invoiceCheckWorker", "startFlashAddressWorker", "stopFlashAddressWorker"]),
     ...mapActions(useTokensStore, ["setTokenPaid"]),
     ...mapActions(useWalletStore, [
       "setInvoicePaid",
@@ -607,6 +608,11 @@ export default {
     this.generateNPCConnection();
     this.claimAllTokens();
     this.generateNPCV2Connection();
+    // Flash Address: start background poll worker if address is configured
+    const flashStore = useFlashAddressStore();
+    if (flashStore.enabled) {
+      this.startFlashAddressWorker();
+    }
     this.getLatestQuotes();
     // Ensure wallet action buttons have equal width
     this.$nextTick(this.equalizeButtonWidths);
