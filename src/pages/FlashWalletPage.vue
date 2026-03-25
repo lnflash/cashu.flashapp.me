@@ -130,6 +130,13 @@
         <div class="sheet-handle" />
         <div class="sheet-title">More</div>
         <div class="sheet-items">
+          <div class="sheet-item" @click="openScanFromMore">
+            <div class="sheet-item-left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7" y="7" width="10" height="10" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+              <span>Scan QR</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
           <div class="sheet-item" @click="openBackupKey">
             <div class="sheet-item-left">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -162,6 +169,21 @@
       </div>
     </q-dialog>
 
+    <!-- QR Scanner sheet -->
+    <q-dialog v-model="showScanner" position="bottom">
+      <div class="scanner-sheet">
+        <div class="sheet-handle" />
+        <div class="scanner-header">
+          <span class="sheet-title">Scan QR</span>
+          <button class="scanner-close" @click="showScanner = false">✕</button>
+        </div>
+        <div class="scanner-wrap">
+          <QrcodeReader v-if="showScanner" @decode="onQrDecode" />
+        </div>
+        <div class="scanner-hint">Point camera at a Lightning invoice, ecash token, or address</div>
+      </div>
+    </q-dialog>
+
     <!-- Backup key modal -->
     <q-dialog v-model="showBackupKey">
       <div class="backup-modal">
@@ -190,12 +212,15 @@ import { useMintsStore } from 'src/stores/mints'
 import { useUiStore } from 'src/stores/ui'
 import { useNostrStore } from 'src/stores/nostr'
 import { usePriceStore } from 'src/stores/price'
+import { useWalletStore } from 'src/stores/wallet'
+import QrcodeReader from 'src/components/QrcodeReader.vue'
 
 const FLASH_MINT = 'https://forge.flashapp.me'
 const POLL_INTERVAL = 30_000
 
 export default defineComponent({
   name: 'FlashWalletPage',
+  components: { QrcodeReader },
 
   setup() {
     const router = useRouter()
@@ -207,11 +232,14 @@ export default defineComponent({
     const nostrStore = useNostrStore()
     const priceStore = usePriceStore()
 
+    const walletStore = useWalletStore()
+
     const unit = ref<'usd' | 'btc'>('usd')
     const showSettings = ref(false)
     const showMore = ref(false)
     const showAllTx = ref(false)
     const showBackupKey = ref(false)
+    const showScanner = ref(false)
     const toastMsg = ref('')
     let pollTimer: ReturnType<typeof setInterval> | null = null
 
@@ -263,6 +291,21 @@ export default defineComponent({
     }
 
     function openSend() {
+      uiStore.showSendDialog = true
+    }
+
+    function openScanFromMore() {
+      showMore.value = false
+      showScanner.value = true
+    }
+
+    function onQrDecode(data: string) {
+      showScanner.value = false
+      if (!data) return
+      // Pre-fill the send dialog with the scanned value
+      try {
+        walletStore.payInvoiceData.input.request = data
+      } catch {}
       uiStore.showSendDialog = true
     }
 
@@ -342,6 +385,7 @@ export default defineComponent({
       formatUsd, formatBtc, txSubline,
       openSend, copyAddress, copyNsec,
       goToMints, goToSettings, goToMintsFromMore, openHistory, openBackupKey, confirmReset,
+      showScanner, openScanFromMore, onQrDecode,
     }
   },
 })
@@ -429,4 +473,12 @@ export default defineComponent({
 .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%); background: #41ad49; color: #000; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 99px; z-index: 9999; }
 .toast-enter-active, .toast-leave-active { transition: all .2s; }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
+
+/* Scanner sheet */
+.scanner-sheet { background: #141418; border-radius: 20px 20px 0 0; padding: 12px 20px 40px; min-width: 100vw; }
+.scanner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.scanner-close { background: none; border: none; color: #888; font-size: 18px; cursor: pointer; padding: 4px 8px; }
+.scanner-close:hover { color: #f5f5f5; }
+.scanner-wrap { border-radius: 14px; overflow: hidden; background: #000; }
+.scanner-hint { font-size: 13px; color: #666; text-align: center; margin-top: 14px; }
 </style>
