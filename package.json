@@ -54,7 +54,7 @@
     "@capacitor/cli": "^6.2.0",
     "@capacitor/ios": "^6.0.0",
     "@electron/packager": "^18.4.4",
-    "@quasar/app-vite": "^1.11.0",
+    "@quasar/app-vite": "^2.0.0",
     "@quasar/icongenie": "^4.0.0",
     "@types/node": "^20.12.11",
     "@types/underscore": "^1.11.15",
@@ -71,7 +71,7 @@
     "prettier": "^2.8.8",
     "typescript": "^5.4.5",
     "vite-jsconfig-paths": "^2.0.1",
-    "vitest": "^3.1.1",
+    "vitest": "^2.0.0",
     "workbox-build": "^6.6.1",
     "workbox-cacheable-response": "^6.6.1",
     "workbox-core": "^6.6.1",
@@ -84,5 +84,8 @@
     "node": ">=16.11.0",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
+  },
+  "overrides": {
+    "vite": "^5.0.0"
   }
 }
