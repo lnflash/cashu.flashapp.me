@@ -3,7 +3,7 @@ const routes = [
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
     children: [
-      { path: "", component: () => import("src/pages/WalletPage.vue") },
+      { path: "", component: () => import("src/pages/FlashWalletPage.vue") },
     ],
   },
   {
@@ -66,6 +66,14 @@ const routes = [
     component: () => import("layouts/FullscreenLayout.vue"),
     children: [
       { path: "", component: () => import("src/pages/TermsPage.vue") },
+    ],
+  },
+
+  {
+    path: "/receive",
+    component: () => import("layouts/BlankLayout.vue"),
+    children: [
+      { path: "", component: () => import("src/pages/FlashReceivePage.vue") },
     ],
   },
 
