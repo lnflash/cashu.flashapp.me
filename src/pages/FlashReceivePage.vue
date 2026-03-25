@@ -261,12 +261,28 @@ export default defineComponent({
       return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
     });
 
+    const FLASH_MINT = 'https://forge.flashapp.me';
+
+    async function ensureFlashMint() {
+      const mints = mintsStore.mints || [];
+      const hasFlash = mints.some((m: any) => m.url === FLASH_MINT);
+      if (!hasFlash) {
+        try { await mintsStore.addMint({ url: FLASH_MINT }) } catch {}
+      }
+      if (!mintsStore.activeMintUrl) {
+        try { await mintsStore.activateMintUrl(FLASH_MINT, false, true) } catch {}
+      }
+    }
+
     async function generateInvoice() {
       loadingInvoice.value = true;
-      invoice.value = "";
+      invoice.value = ;
       expiryTs.value = null;
       try {
-        const mw = await walletStore.mintWallet(mintsStore.activeMintUrl, mintsStore.activeUnit || "sat");
+        await ensureFlashMint();
+        const mintUrl = mintsStore.activeMintUrl || FLASH_MINT;
+        const unit = mintsStore.activeUnit || 'sat';
+        const mw = await walletStore.mintWallet(mintUrl, unit);
         await walletStore.requestMint(0, mw);
         invoice.value = walletStore.invoiceData?.bolt11 || "";
         if (invoice.value) {
