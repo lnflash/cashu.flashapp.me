@@ -8,8 +8,12 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-const { configure } = require("quasar/wrappers");
-const { execSync } = require("child_process");
+import { configure } from "quasar/wrappers";
+import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function resolveGitCommit() {
   try {
@@ -25,7 +29,7 @@ function resolveGitCommit() {
   }
 }
 
-module.exports = configure(function (/* ctx */) {
+export default configure(function (/* ctx */) {
   return {
     eslint: {
       // fix: true,
