@@ -155,10 +155,8 @@ export default defineComponent({
       if (privkey) {
         // Already have an npub — register with it
         try {
-          const { bech32 } = await import("https://esm.sh/@scure/base@1.1.7");
-          const { secp256k1 } = await import(
-            "https://esm.sh/@noble/curves@1.3.0/secp256k1"
-          );
+          const { bech32 } = await import('@scure/base');
+          const { secp256k1 } = (await import('@noble/curves/secp256k1') as any);
           const bytes = new Uint8Array(
             privkey.match(/.{2}/g).map((b: string) => parseInt(b, 16))
           );
