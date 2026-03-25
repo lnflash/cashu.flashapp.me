@@ -728,8 +728,10 @@ export default {
 
     this.initSigner();
 
-    // show welcome dialog
-    this.showWelcomePage();
+    // Suppress cashu.me stock welcome — FlashShell handles onboarding
+    useWelcomeStore().showWelcome = false;
+    // show welcome dialog - disabled, FlashShell handles this
+    // this.showWelcomePage();
 
     // listen to NWC commands if enabled
     if (this.nwcEnabled) {
