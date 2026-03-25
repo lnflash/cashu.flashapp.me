@@ -159,8 +159,7 @@
       <!-- RECEIVE TOKENS DIALOG  -->
       <ReceiveTokenDialog v-model="showReceiveTokens" />
     </div>
-  </FlashShell>
-</template>
+  </template>
 <style>
 * {
   touch-action: manipulation;
@@ -285,7 +284,6 @@ export default {
     AndroidPWAPrompt,
     ScanIcon,
     ActivityOrb,
-    FlashShell,
   },
   data: function () {
     return {
@@ -641,6 +639,14 @@ export default {
 
   created: async function () {
     console.log(`Git commit: ${GIT_COMMIT}`);
+
+    // Redirect to /setup on first visit (before anything else loads)
+    const SETUP_DONE_KEY = 'cashu.flash.setupDone';
+    if (!localStorage.getItem(SETUP_DONE_KEY)) {
+      this.$router.replace('/setup');
+      return;
+    }
+
 
     // Initialize and run migrations
     const migrationsStore = useMigrationsStore();

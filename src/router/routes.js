@@ -69,6 +69,14 @@ const routes = [
     ],
   },
 
+  {
+    path: "/setup",
+    component: () => import("layouts/BlankLayout.vue"),
+    children: [
+      { path: "", component: () => import("src/pages/SetupPage.vue") },
+    ],
+  },
+
   // Always leave this as last one,
   // but you can also remove it
   {

@@ -1,6 +1,6 @@
 <template>
   <!-- Full-screen takeover — covers everything including cashu.me UI -->
-  <div v-if="modelValue" class="setup-wizard-overlay">
+  <div class="setup-wizard-overlay">
     <div class="setup-wizard">
       <!-- Progress bar -->
       <div class="wizard-progress-bar">
