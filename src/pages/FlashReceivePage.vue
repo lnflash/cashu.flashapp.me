@@ -227,6 +227,7 @@ import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
 import VueQrcode from "@chenfengyuan/vue-qrcode";
 import { useFlashAddressStore } from "src/stores/flashAddress";
 import { useWalletStore } from "src/stores/wallet";
+import { useMintsStore } from "src/stores/mints";
 import { decode as decodeBolt11 } from "light-bolt11-decoder";
 
 export default defineComponent({
@@ -235,6 +236,7 @@ export default defineComponent({
   setup() {
     const flashStore = useFlashAddressStore();
     const walletStore = useWalletStore();
+    const mintsStore = useMintsStore();
 
     const tab = ref<"usd" | "btc">("usd");
     const btcTab = ref<"invoice" | "address">("invoice");
@@ -264,7 +266,8 @@ export default defineComponent({
       invoice.value = "";
       expiryTs.value = null;
       try {
-        await walletStore.requestMint(0);
+        const mw = await walletStore.mintWallet(mintsStore.activeMintUrl, mintsStore.activeUnit || "sat");
+        await walletStore.requestMint(0, mw);
         invoice.value = walletStore.invoiceData?.bolt11 || "";
         if (invoice.value) {
           try {

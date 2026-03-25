@@ -69,6 +69,11 @@ const RESERVED = [
   "www",
   "support",
   "help",
+  "you",
+  "test",
+  "flash",
+  "demo",
+  "user",
 ];
 
 export default defineComponent({
