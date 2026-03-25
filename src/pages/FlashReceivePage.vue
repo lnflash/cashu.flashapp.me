@@ -276,7 +276,7 @@ export default defineComponent({
 
     async function generateInvoice() {
       loadingInvoice.value = true;
-      invoice.value = ;
+      invoice.value = "";
       expiryTs.value = null;
       try {
         await ensureFlashMint();
