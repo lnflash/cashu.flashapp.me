@@ -311,7 +311,7 @@ export default defineComponent({
 
     function goToMints() {
       showSettings.value = false
-      router.push('/settings')
+      router.push('/mints')
     }
 
     function goToSettings() {
@@ -321,7 +321,7 @@ export default defineComponent({
 
     function goToMintsFromMore() {
       showMore.value = false
-      router.push('/settings')
+      router.push('/mints')
     }
 
     function openHistory() {
