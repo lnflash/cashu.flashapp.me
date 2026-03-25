@@ -195,6 +195,11 @@
       </div>
     </q-dialog>
 
+    <!-- Flash Send Dialog + child dialogs (store-driven, no v-model needed) -->
+    <FlashSendDialog />
+    <PayInvoiceDialog />
+    <SendTokenDialog />
+
     <!-- Toast -->
     <transition name="toast">
       <div v-if="toastMsg" class="toast">{{ toastMsg }}</div>
@@ -213,14 +218,18 @@ import { useUiStore } from 'src/stores/ui'
 import { useNostrStore } from 'src/stores/nostr'
 import { usePriceStore } from 'src/stores/price'
 import { useWalletStore } from 'src/stores/wallet'
+import { useSendTokensStore } from 'src/stores/sendTokensStore'
 import QrcodeReader from 'src/components/QrcodeReader.vue'
+import FlashSendDialog from 'src/components/FlashSendDialog.vue'
+import PayInvoiceDialog from 'src/components/PayInvoiceDialog.vue'
+import SendTokenDialog from 'src/components/SendTokenDialog.vue'
 
 const FLASH_MINT = 'https://forge.flashapp.me'
 const POLL_INTERVAL = 30_000
 
 export default defineComponent({
   name: 'FlashWalletPage',
-  components: { QrcodeReader },
+  components: { QrcodeReader, FlashSendDialog, PayInvoiceDialog, SendTokenDialog },
 
   setup() {
     const router = useRouter()
@@ -233,6 +242,7 @@ export default defineComponent({
     const priceStore = usePriceStore()
 
     const walletStore = useWalletStore()
+    const sendTokensStore = useSendTokensStore()
 
     const unit = ref<'usd' | 'btc'>('usd')
     const showSettings = ref(false)
