@@ -370,6 +370,17 @@ export default defineComponent({
     }
 
     onMounted(async () => {
+      // First-visit: redirect to setup wizard
+      const setupDone = localStorage.getItem('cashu.flash.setupDone')
+      if (!setupDone) {
+        // Suppress stock cashu.me welcome flow
+        localStorage.setItem('cashu.welcome.showWelcome', JSON.stringify(false))
+        localStorage.setItem('cashu.welcome.termsAccepted', JSON.stringify(true))
+        localStorage.setItem('cashu.welcome.mintSetupCompleted', JSON.stringify(true))
+        router.replace('/setup')
+        return
+      }
+
       const mints = mintsStore.mints || []
       const hasFlash = mints.some((m: any) => m.url === FLASH_MINT)
       if (!hasFlash) {
