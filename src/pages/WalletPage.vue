@@ -1,158 +1,165 @@
 <template>
-  <div class="row q-col-gutter-y-md justify-center q-pt-sm q-pb-md">
-    <div class="col-12 col-sm-11 col-md-8 text-center q-gutter-y-md">
-      <ActivityOrb />
-      <NoMintWarnBanner v-if="mints.length == 0" />
-      <BalanceView v-else :set-tab="setTab" />
-      <div
-        class="row items-center justify-center no-wrap q-mb-none q-mx-none q-px-none q-pt-lg q-pb-md position-relative"
-      >
-        <div class="col-6 q-mb-md flex justify-center items-center">
-          <q-btn
-            rounded
-            dense
-            class="q-px-md q-mr-md wallet-action-btn"
-            color="primary"
-            @click="showReceiveDialog = true"
-          >
-            <div class="button-content">
-              <span>{{ $t("WalletPage.actions.receive.label") }}</span>
-            </div>
-          </q-btn>
-        </div>
-
-        <transition appear enter-active-class="animated pulse">
-          <div class="scan-button-container">
-            <q-btn size="lg" outline color="primary" flat @click="showCamera">
-              <ScanIcon size="2em" />
+  <FlashShell>
+    <div class="row q-col-gutter-y-md justify-center q-pt-sm q-pb-md">
+      <div class="col-12 col-sm-11 col-md-8 text-center q-gutter-y-md">
+        <ActivityOrb />
+        <NoMintWarnBanner v-if="mints.length == 0" />
+        <BalanceView v-else :set-tab="setTab" />
+        <div
+          class="row items-center justify-center no-wrap q-mb-none q-mx-none q-px-none q-pt-lg q-pb-md position-relative"
+        >
+          <div class="col-6 q-mb-md flex justify-center items-center">
+            <q-btn
+              rounded
+              dense
+              class="q-px-md q-mr-md wallet-action-btn"
+              color="primary"
+              @click="showReceiveDialog = true"
+            >
+              <div class="button-content">
+                <span>{{ $t("WalletPage.actions.receive.label") }}</span>
+              </div>
             </q-btn>
           </div>
-        </transition>
 
-        <!-- button to showSendDialog -->
-        <div class="col-6 q-mb-md flex justify-center items-center">
-          <q-btn
-            rounded
-            dense
-            class="q-px-md q-ml-md wallet-action-btn"
-            color="primary"
-            @click="showSendDialog = true"
-          >
-            <div class="button-content">
-              <span>{{ $t("WalletPage.actions.send.label") }}</span>
+          <transition appear enter-active-class="animated pulse">
+            <div class="scan-button-container">
+              <q-btn size="lg" outline color="primary" flat @click="showCamera">
+                <ScanIcon size="2em" />
+              </q-btn>
             </div>
-          </q-btn>
+          </transition>
+
+          <!-- button to showSendDialog -->
+          <div class="col-6 q-mb-md flex justify-center items-center">
+            <q-btn
+              rounded
+              dense
+              class="q-px-md q-ml-md wallet-action-btn"
+              color="primary"
+              @click="showSendDialog = true"
+            >
+              <div class="button-content">
+                <span>{{ $t("WalletPage.actions.send.label") }}</span>
+              </div>
+            </q-btn>
+          </div>
+          <ReceiveDialog v-model="showReceiveDialog" />
+          <SendDialog v-model="showSendDialog" />
         </div>
-        <ReceiveDialog v-model="showReceiveDialog" />
-        <SendDialog v-model="showSendDialog" />
-      </div>
-      <!-- ///////////////////////////////////////////
+        <!-- ///////////////////////////////////////////
       ////////////////// TABLES /////////////////
       /////////////////////////////////////////// -->
-      <q-expansion-item expand-icon-class="hidden" v-model="expandHistory">
-        <template v-slot:header="{ expanded }">
-          <q-item-section class="item-center text-center">
-            <span
-              ><q-icon
+        <q-expansion-item expand-icon-class="hidden" v-model="expandHistory">
+          <template v-slot:header="{ expanded }">
+            <q-item-section class="item-center text-center">
+              <span
+                ><q-icon
+                  color="primary"
+                  :name="
+                    expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                  "
+              /></span>
+            </q-item-section>
+          </template>
+          <q-tabs
+            v-model="tab"
+            no-caps
+            :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
+          >
+            <q-tab
+              name="history"
+              class="text-secondary"
+              :label="$t('WalletPage.tabs.history.label')"
+            ></q-tab>
+            <!-- <q-tab name="tokens" label="Tokens"></q-tab> -->
+            <q-tab
+              name="mints"
+              class="text-secondary"
+              :label="$t('WalletPage.tabs.mints.label')"
+            ></q-tab>
+          </q-tabs>
+
+          <q-tab-panels
+            :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
+            v-model="tab"
+            animated
+          >
+            <!-- ////////////////// UNIFIED HISTORY LIST ///////////////// -->
+
+            <q-tab-panel name="history">
+              <HistoryTable />
+            </q-tab-panel>
+
+            <!-- ////////////////////// SETTINGS ////////////////// -->
+
+            <q-tab-panel name="mints" class="q-px-sm">
+              <MintSettings />
+            </q-tab-panel>
+          </q-tab-panels>
+        </q-expansion-item>
+
+        <div style="margin-bottom: 0rem">
+          <div class="row q-pt-sm">
+            <div class="col-12 q-pt-xs">
+              <q-btn
+                class="q-mx-xs q-px-sm q-my-sm"
+                outline
+                size="0.6rem"
+                v-if="
+                  getPwaDisplayMode() == 'browser' &&
+                  deferredPWAInstallPrompt != null
+                "
                 color="primary"
-                :name="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-            /></span>
-          </q-item-section>
-        </template>
-        <q-tabs
-          v-model="tab"
-          no-caps
-          :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
-        >
-          <q-tab
-            name="history"
-            class="text-secondary"
-            :label="$t('WalletPage.tabs.history.label')"
-          ></q-tab>
-          <!-- <q-tab name="tokens" label="Tokens"></q-tab> -->
-          <q-tab
-            name="mints"
-            class="text-secondary"
-            :label="$t('WalletPage.tabs.mints.label')"
-          ></q-tab>
-        </q-tabs>
-
-        <q-tab-panels
-          :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
-          v-model="tab"
-          animated
-        >
-          <!-- ////////////////// UNIFIED HISTORY LIST ///////////////// -->
-
-          <q-tab-panel name="history">
-            <HistoryTable />
-          </q-tab-panel>
-
-          <!-- ////////////////////// SETTINGS ////////////////// -->
-
-          <q-tab-panel name="mints" class="q-px-sm">
-            <MintSettings />
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-expansion-item>
-
-      <div style="margin-bottom: 0rem">
-        <div class="row q-pt-sm">
-          <div class="col-12 q-pt-xs">
-            <q-btn
-              class="q-mx-xs q-px-sm q-my-sm"
-              outline
-              size="0.6rem"
-              v-if="
-                getPwaDisplayMode() == 'browser' &&
-                deferredPWAInstallPrompt != null
-              "
-              color="primary"
-              @click="triggerPwaInstall()"
-              ><b>{{ $t("WalletPage.install.text") }}</b
-              ><q-tooltip>{{
-                $t("WalletPage.install.tooltip")
-              }}</q-tooltip></q-btn
-            >
+                @click="triggerPwaInstall()"
+                ><b>{{ $t("WalletPage.install.text") }}</b
+                ><q-tooltip>{{
+                  $t("WalletPage.install.tooltip")
+                }}</q-tooltip></q-btn
+              >
+            </div>
           </div>
         </div>
+
+        <iOSPWAPrompt />
+        <AndroidPWAPrompt />
       </div>
 
-      <iOSPWAPrompt />
-      <AndroidPWAPrompt />
+      <!-- BOTTOM LIGHTNING BUTTONS -->
+
+      <!-- DIALOGS  -->
+
+      <!-- INPUT PARSER  -->
+      <PayInvoiceDialog v-model="payInvoiceData.show" />
+
+      <!-- QR CODE SCANNER  -->
+      <q-dialog
+        v-model="camera.show"
+        backdrop-filter="blur(2px) brightness(60%)"
+      >
+        <QrcodeReader @decode="decodeQR" />
+      </q-dialog>
+
+      <!-- WELCOME DIALOG  -->
+      <WelcomeDialog
+        :welcome-dialog="welcomeDialog"
+        :trigger-pwa-install="triggerPwaInstall"
+        :set-tab="setTab"
+        :get-pwa-display-mode="getPwaDisplayMode"
+        :set-welcome-dialog-seen="setWelcomeDialogSeen"
+      />
+
+      <!-- INVOICE DETAILS  -->
+      <CreateInvoiceDialog v-model="showCreateInvoiceDialog" />
+      <InvoiceDetailDialog v-model="showInvoiceDetails" />
+
+      <!-- SEND TOKENS DIALOG  -->
+      <SendTokenDialog v-model="showSendTokens" />
+
+      <!-- RECEIVE TOKENS DIALOG  -->
+      <ReceiveTokenDialog v-model="showReceiveTokens" />
     </div>
-
-    <!-- BOTTOM LIGHTNING BUTTONS -->
-
-    <!-- DIALOGS  -->
-
-    <!-- INPUT PARSER  -->
-    <PayInvoiceDialog v-model="payInvoiceData.show" />
-
-    <!-- QR CODE SCANNER  -->
-    <q-dialog v-model="camera.show" backdrop-filter="blur(2px) brightness(60%)">
-      <QrcodeReader @decode="decodeQR" />
-    </q-dialog>
-
-    <!-- WELCOME DIALOG  -->
-    <WelcomeDialog
-      :welcome-dialog="welcomeDialog"
-      :trigger-pwa-install="triggerPwaInstall"
-      :set-tab="setTab"
-      :get-pwa-display-mode="getPwaDisplayMode"
-      :set-welcome-dialog-seen="setWelcomeDialogSeen"
-    />
-
-    <!-- INVOICE DETAILS  -->
-    <CreateInvoiceDialog v-model="showCreateInvoiceDialog" />
-    <InvoiceDetailDialog v-model="showInvoiceDetails" />
-
-    <!-- SEND TOKENS DIALOG  -->
-    <SendTokenDialog v-model="showSendTokens" />
-
-    <!-- RECEIVE TOKENS DIALOG  -->
-    <ReceiveTokenDialog v-model="showReceiveTokens" />
-  </div>
+  </FlashShell>
 </template>
 <style>
 * {
@@ -238,6 +245,7 @@ import { useNWCStore } from "src/stores/nwc";
 import { useNPCStore } from "src/stores/npubcash";
 import { useNPCV2Store } from "src/stores/npcv2";
 import { useFlashAddressStore } from "src/stores/flashAddress";
+import FlashShell from "components/FlashShell.vue";
 import { useNostrStore } from "src/stores/nostr";
 import { usePRStore } from "src/stores/payment-request";
 import { useDexieStore } from "src/stores/dexie";
@@ -277,6 +285,7 @@ export default {
     AndroidPWAPrompt,
     ScanIcon,
     ActivityOrb,
+    FlashShell,
   },
   data: function () {
     return {
