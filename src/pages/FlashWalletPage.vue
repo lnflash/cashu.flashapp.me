@@ -15,17 +15,17 @@
     <div class="balance-card">
       <div class="glow" />
       <div class="unit-toggle">
-        <button class="unit-btn" :class="{ active: unit === 'usd' }" @click="unit = 'usd'">USD</button>
-        <button class="unit-btn" :class="{ active: unit === 'btc' }" @click="unit = 'btc'">BTC</button>
+        <button class="unit-btn" :class="{ active: activeUnit === 'usd' }" @click="setUnit('usd')">USD</button>
+        <button class="unit-btn" :class="{ active: activeUnit === 'sat' }" @click="setUnit('sat')">BTC</button>
       </div>
       <div class="balance-label">YOUR BALANCE</div>
       <div class="balance-amount">
-        <span v-if="unit === 'usd'">{{ formatUsd(balanceSats) }}</span>
-        <span v-else>{{ formatBtc(balanceSats) }}</span>
+        <span v-if="activeUnit === 'usd'">{{ formatUsdUnit(totalBalance) }}</span>
+        <span v-else>{{ formatBtc(totalBalance) }}</span>
       </div>
       <div class="balance-sub">
-        <span v-if="unit === 'usd'">{{ balanceSats.toLocaleString() }} sats</span>
-        <span v-else>{{ formatUsd(balanceSats) }}</span>
+        <span v-if="activeUnit === 'usd'">{{ totalBalance.toLocaleString() }} cents</span>
+        <span v-else>{{ formatUsd(totalBalance) }}</span>
       </div>
       <div v-if="flashAddress" class="address-chip" @click="copyAddress">
         <span class="chip-bolt">⚡</span>
@@ -95,7 +95,7 @@
           <div class="tx-sub">{{ txSubline(tx) }}</div>
         </div>
         <div class="tx-amount" :class="tx.amount > 0 ? 'tx-amount--in' : 'tx-amount--out'">
-          {{ tx.amount > 0 ? '+' : '' }}{{ unit === 'usd' ? formatUsd(Math.abs(tx.amount)) : Math.abs(tx.amount).toLocaleString() + ' sats' }}
+          {{ tx.amount > 0 ? '+' : '' }}{{ activeUnit === 'usd' ? formatUsdUnit(Math.abs(tx.amount)) : Math.abs(tx.amount).toLocaleString() + ' sats' }}
         </div>
       </div>
     </div>
@@ -211,6 +211,7 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProofsStore } from 'src/stores/proofs'
+import { useMintsStore as useMintsStoreFlash } from 'src/stores/mints'
 import { useTokensStore } from 'src/stores/tokens'
 import { useFlashAddressStore } from 'src/stores/flashAddress'
 import { useMintsStore } from 'src/stores/mints'
@@ -244,7 +245,7 @@ export default defineComponent({
     const walletStore = useWalletStore()
     const sendTokensStore = useSendTokensStore()
 
-    const unit = ref<'usd' | 'btc'>('usd')
+    // unit managed by mintsStore.activeUnit
     const showSettings = ref(false)
     const showMore = ref(false)
     const showAllTx = ref(false)
@@ -253,10 +254,13 @@ export default defineComponent({
     const toastMsg = ref('')
     let pollTimer: ReturnType<typeof setInterval> | null = null
 
-    const balanceSats = computed(() => {
-      const proofs = proofsStore.proofs || []
-      return proofs.reduce((s: number, p: any) => s + p.amount, 0)
-    })
+    const mintsStore = useMintsStoreFlash()
+    const activeUnit = computed(() => mintsStore.activeUnit || 'sat')
+    const totalBalance = computed(() => mintsStore.totalUnitBalance)
+
+    function setUnit(u: string) {
+      mintsStore.activeUnit = u as any
+    }
 
     const btcPrice = ref(0)
 
@@ -266,6 +270,14 @@ export default defineComponent({
       if (usd >= 100) return '$' + usd.toFixed(2)
       if (usd >= 1) return '$' + usd.toFixed(3)
       return '$' + usd.toFixed(4)
+    }
+
+    // formatUsdUnit: usd proofs are stored in cents
+    function formatUsdUnit(cents: number) {
+      const dollars = cents / 100
+      if (dollars >= 100) return '$' + dollars.toFixed(2)
+      if (dollars >= 1) return '$' + dollars.toFixed(2)
+      return '$' + dollars.toFixed(4)
     }
 
     function formatBtc(sats: number) {
@@ -406,10 +418,10 @@ export default defineComponent({
     })
 
     return {
-      unit, balanceSats, flashAddress, flashUsername, nsec,
+      activeUnit, totalBalance, flashAddress, flashUsername, nsec,
       transactions, displayedTx,
       showSettings, showMore, showAllTx, showBackupKey, toastMsg,
-      formatUsd, formatBtc, txSubline,
+      formatUsd, formatUsdUnit, formatBtc, txSubline, setUnit,
       openSend, copyAddress, copyNsec,
       goToMints, goToSettings, goToMintsFromMore, openHistory, openBackupKey, confirmReset,
       showScanner, openScanFromMore, onQrDecode,
