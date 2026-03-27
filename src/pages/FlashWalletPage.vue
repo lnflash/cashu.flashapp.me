@@ -211,7 +211,6 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProofsStore } from 'src/stores/proofs'
-import { useMintsStore as useMintsStoreFlash } from 'src/stores/mints'
 import { useTokensStore } from 'src/stores/tokens'
 import { useFlashAddressStore } from 'src/stores/flashAddress'
 import { useMintsStore } from 'src/stores/mints'
@@ -254,7 +253,6 @@ export default defineComponent({
     const toastMsg = ref('')
     let pollTimer: ReturnType<typeof setInterval> | null = null
 
-    const mintsStore = useMintsStoreFlash()
     const activeUnit = computed(() => mintsStore.activeUnit || 'sat')
     const totalBalance = computed(() => mintsStore.totalUnitBalance)
 
