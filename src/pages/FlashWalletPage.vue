@@ -258,7 +258,7 @@ export default defineComponent({
       return proofs.reduce((s: number, p: any) => s + p.amount, 0)
     })
 
-    const btcPrice = computed(() => priceStore.bitcoinPrice || 0)
+    const btcPrice = ref(0)
 
     function formatUsd(sats: number) {
       if (!parseFloat(String(btcPrice.value))) return '$0.0000'
@@ -388,7 +388,11 @@ export default defineComponent({
       if (!hasFlash) {
         try { await mintsStore.addMint({ url: FLASH_MINT }) } catch {}
       }
-      try { await priceStore.getPrice() } catch {}
+      try {
+        const priceRes = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC')
+        const priceData = await priceRes.json()
+        btcPrice.value = parseFloat(priceData?.data?.rates?.USD || '0') || 0
+      } catch {}
       if (flashStore.enabled) {
         flashStore.claimPending()
       }
