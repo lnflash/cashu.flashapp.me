@@ -261,8 +261,8 @@ export default defineComponent({
     const btcPrice = computed(() => priceStore.bitcoinPrice || 0)
 
     function formatUsd(sats: number) {
-      if (!btcPrice.value) return '$0.0000'
-      const usd = (sats / 100_000_000) * btcPrice.value
+      if (!parseFloat(String(btcPrice.value))) return '$0.0000'
+      const price = parseFloat(String(btcPrice.value)) || 0; const usd = (sats / 100_000_000) * price
       if (usd >= 100) return '$' + usd.toFixed(2)
       if (usd >= 1) return '$' + usd.toFixed(3)
       return '$' + usd.toFixed(4)
