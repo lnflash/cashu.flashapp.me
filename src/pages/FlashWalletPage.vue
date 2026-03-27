@@ -389,9 +389,9 @@ export default defineComponent({
         try { await mintsStore.addMint({ url: FLASH_MINT }) } catch {}
       }
       try {
-        const priceRes = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC')
+        const priceRes = await fetch('https://ecash.flashapp.me/api/price')
         const priceData = await priceRes.json()
-        btcPrice.value = parseFloat(priceData?.data?.rates?.USD || '0') || 0
+        btcPrice.value = parseFloat(String(priceData?.usd || 0)) || 0
       } catch {}
       if (flashStore.enabled) {
         flashStore.claimPending()
