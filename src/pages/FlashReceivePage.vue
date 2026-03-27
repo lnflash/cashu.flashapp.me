@@ -221,7 +221,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
+import { defineComponent, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import VueQrcode from "@chenfengyuan/vue-qrcode";
 import { useFlashAddressStore } from "src/stores/flashAddress";
 import { useWalletStore } from "src/stores/wallet";
@@ -335,11 +335,22 @@ export default defineComponent({
       } else copyInvoice();
     }
 
+    // Regenerate invoice when user switches to BTC invoice tab
+    watch([tab, btcTab], ([newTab, newBtcTab]) => {
+      if (newTab === 'btc' && newBtcTab === 'invoice' && !invoice.value) {
+        generateInvoice();
+      }
+    });
+
     onMounted(() => {
-      generateInvoice();
+      // Start timer immediately so countdown works as soon as invoice loads
       timer = setInterval(() => {
         now.value = Date.now();
       }, 1000);
+      // Only generate invoice if we land on BTC invoice tab directly
+      if (tab.value === 'btc' && btcTab.value === 'invoice') {
+        generateInvoice();
+      }
     });
     onUnmounted(() => {
       if (timer) clearInterval(timer);

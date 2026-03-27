@@ -73,10 +73,6 @@
         </div>
         <span class="action-label">Send</span>
       </button>
-      <button class="action-btn" @click="$router.push('/receive')">
-        <div class="action-icon">⚡</div>
-        <span class="action-label">Top up</span>
-      </button>
       <button class="action-btn" @click="showMore = true">
         <div class="action-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

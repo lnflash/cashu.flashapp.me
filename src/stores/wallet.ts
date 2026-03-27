@@ -769,8 +769,18 @@ export const useWalletStore = defineStore("wallet", {
         if (this.payInvoiceData.input.request == "") {
           throw new Error("no invoice provided.");
         }
+        // Issue 2: pre-flight check for zero-amount invoices
+        const invoiceSat = this.payInvoiceData.invoice?.sat ?? this.payInvoiceData.invoice?.fsat ?? 0;
+        if (!invoiceSat || invoiceSat === 0) {
+          const msg = "This invoice has no fixed amount. Please use an invoice with a specific amount.";
+          notifyError(msg, "Cannot pay");
+          this.payInvoiceData.blocking = false;
+          return;
+        }
+        // Issue 1: always use 'sat' unit for melt quotes — Lightning invoices are always
+        // SAT-denominated. Forge mint cannot melt a SAT invoice using USD proofs.
         const payload: MeltQuotePayload = {
-          unit: mintStore.activeUnit,
+          unit: "sat",
           request: this.payInvoiceData.input.request,
         };
         this.payInvoiceData.meltQuote.payload = payload;
@@ -781,7 +791,12 @@ export const useWalletStore = defineStore("wallet", {
       } catch (error: any) {
         this.payInvoiceData.meltQuote.error = error;
         console.error(error);
-        notifyApiError(error);
+        if (error?.message?.toLowerCase().includes("invoice has no amount") ||
+            error?.message?.toLowerCase().includes("no amount")) {
+          notifyError("This invoice has no fixed amount. Please use an invoice with a specific amount.", "Cannot pay");
+        } else {
+          notifyApiError(error);
+        }
         throw error;
       } finally {
         this.payInvoiceData.blocking = false;
