@@ -38,6 +38,21 @@
           </svg>
         </button>
       </div>
+      <div v-if="flashAddress" class="receive-unit-row">
+        <span class="receive-unit-label">Receive Lightning as:</span>
+        <div class="receive-unit-toggle">
+          <button
+            class="receive-unit-btn"
+            :class="{ 'receive-unit-btn--active': receiveUnit === 'usd' }"
+            @click.stop="setReceiveUnit('usd')"
+          >USD</button>
+          <button
+            class="receive-unit-btn"
+            :class="{ 'receive-unit-btn--active': receiveUnit === 'sat' }"
+            @click.stop="setReceiveUnit('sat')"
+          >BTC</button>
+        </div>
+      </div>
     </div>
 
     <!-- Action row -->
@@ -283,6 +298,24 @@ export default defineComponent({
     }
 
     const flashAddress = computed(() => flashStore.address)
+
+    // Receive unit preference (default usd)
+    const RECEIVE_UNIT_KEY = 'cashu.flashAddress.receiveUnit'
+    const receiveUnit = ref<string>(localStorage.getItem(RECEIVE_UNIT_KEY) || 'usd')
+
+    async function setReceiveUnit(unit: string) {
+      receiveUnit.value = unit
+      localStorage.setItem(RECEIVE_UNIT_KEY, unit)
+      const uname = flashStore.username
+      if (!uname) return
+      try {
+        await fetch(`https://ecash.flashapp.me/api/user/${uname}/receive-unit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ unit }),
+        })
+      } catch {}
+    }
     const flashUsername = computed(() => flashStore.username)
 
     const nsec = computed(() => {
@@ -406,6 +439,17 @@ export default defineComponent({
       if (flashStore.enabled) {
         flashStore.claimPending()
       }
+      // Sync receive unit preference from server
+      if (flashStore.username) {
+        try {
+          const ruRes = await fetch(`https://ecash.flashapp.me/api/user/${flashStore.username}/receive-unit`)
+          if (ruRes.ok) {
+            const ruData = await ruRes.json()
+            receiveUnit.value = ruData.receiveUnit || 'usd'
+            localStorage.setItem(RECEIVE_UNIT_KEY, receiveUnit.value)
+          }
+        } catch {}
+      }
       pollTimer = setInterval(async () => {
         try { await proofsStore.getProofs() } catch {}
       }, POLL_INTERVAL)
@@ -416,7 +460,7 @@ export default defineComponent({
     })
 
     return {
-      activeUnit, totalBalance, flashAddress, flashUsername, nsec,
+      activeUnit, totalBalance, flashAddress, flashUsername, nsec, receiveUnit, setReceiveUnit,
       transactions, displayedTx,
       showSettings, showMore, showAllTx, showBackupKey, toastMsg,
       formatUsd, formatUsdUnit, formatBtc, txSubline, setUnit,
@@ -461,6 +505,11 @@ export default defineComponent({
 .chip-domain { color: #888; font-size: 14px; }
 .chip-copy { margin-left: auto; background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; }
 .chip-copy:hover { color: #f5f5f5; }
+.receive-unit-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 2px; }
+.receive-unit-label { font-size: 12px; color: #666; }
+.receive-unit-toggle { display: inline-flex; background: rgba(255,255,255,.06); border-radius: 999px; padding: 2px; }
+.receive-unit-btn { padding: 4px 12px; border-radius: 999px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; color: #666; background: transparent; transition: all .15s; font-family: inherit; }
+.receive-unit-btn--active { background: #41ad49; color: #000; }
 
 .action-row { display: flex; gap: 12px; padding: 0 16px 24px; }
 .action-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #1a1a1e; border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 14px 8px; cursor: pointer; color: #f5f5f5; transition: all .15s; }
