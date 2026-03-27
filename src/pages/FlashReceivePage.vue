@@ -279,22 +279,29 @@ export default defineComponent({
       invoice.value = "";
       expiryTs.value = null;
       try {
-        await ensureFlashMint();
-        const mintUrl = mintsStore.activeMintUrl || FLASH_MINT;
-        const unit = mintsStore.activeUnit || 'sat';
-        const mw = await walletStore.mintWallet(mintUrl, unit);
-        await walletStore.requestMint(0, mw);
-        invoice.value = walletStore.invoiceData?.bolt11 || "";
-        if (invoice.value) {
+        // Always use SAT for Lightning invoices (LNURL spec requires exact amount match)
+        const res = await fetch(FLASH_MINT + '/v1/mint/quote/bolt11', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: 1, unit: 'sat' })
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        invoice.value = data.request || '';
+        if (data.expiry) expiryTs.value = data.expiry;
+        // Store quote ID for later claiming
+        if (data.quote) localStorage.setItem('cashu.pendingReceiveQuote', JSON.stringify({ quote: data.quote, unit: 'sat' }));
+        // Decode expiry from bolt11 as fallback
+        if (invoice.value && !expiryTs.value) {
           try {
             const d = decodeBolt11(invoice.value);
-            const ts = d.sections?.find((s: any) => s.name === "timestamp")
-              ?.value as number;
-            const exp = d.sections?.find((s: any) => s.name === "expiry")
-              ?.value as number;
+            const ts = d.sections?.find((s: any) => s.name === "timestamp")?.value as number;
+            const exp = d.sections?.find((s: any) => s.name === "expiry")?.value as number;
             if (ts && exp) expiryTs.value = ts + exp;
           } catch {}
         }
+      } catch (e) {
+        console.error('[FlashReceive] generateInvoice failed:', e);
       } finally {
         loadingInvoice.value = false;
       }
