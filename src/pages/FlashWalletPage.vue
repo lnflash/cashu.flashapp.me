@@ -452,6 +452,8 @@ export default defineComponent({
         const priceRes = await fetch('https://ecash.flashapp.me/api/price')
         const priceData = await priceRes.json()
         btcPrice.value = parseFloat(String(priceData?.usd || 0)) || 0
+        // Sync into priceStore so lnurlPaySecond (USD→SAT conversion) has a price
+        if (btcPrice.value > 0) priceStore.bitcoinPrice = btcPrice.value
       } catch {}
       if (flashStore.enabled) {
         flashStore.claimPending()
