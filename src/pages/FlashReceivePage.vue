@@ -160,11 +160,9 @@
           {{ invoice ? invoice.slice(0, 24) + "…" : "—" }}
         </div>
 
-        <div v-if="expiryWarning" class="expiry-row" @click="generateInvoice">
-          <span v-if="!isExpired"
-            >⏱ Expires in {{ expiryCountdown }} · tap to refresh</span
-          >
-          <span v-else>Invoice expired · <strong>Generate new →</strong></span>
+        <div v-if="expiryTs" class="expiry-row" :class="{ 'expiry-warning': expiryWarning, 'expiry-expired': isExpired }" @click="isExpired ? generateInvoice() : null">
+          <span v-if="!isExpired">⏱ Expires in {{ expiryCountdown }}</span>
+          <span v-else>Expired · <strong>Tap to generate new →</strong></span>
         </div>
       </div>
 
@@ -574,6 +572,16 @@ export default defineComponent({
   }
 }
 
+.expiry-row {
+  transition: color 0.3s;
+}
+.expiry-row.expiry-warning {
+  color: #f59e0b;
+}
+.expiry-row.expiry-expired {
+  color: #ef4444;
+  cursor: pointer;
+}
 .expiry-row {
   width: 100%;
   text-align: center;

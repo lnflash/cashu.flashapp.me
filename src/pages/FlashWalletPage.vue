@@ -312,7 +312,7 @@ export default defineComponent({
         await fetch(`https://ecash.flashapp.me/api/receive-unit/${uname}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ unit }),
+          body: JSON.stringify({ receiveUnit: unit }),
         })
       } catch {}
     }
