@@ -309,7 +309,7 @@ export default defineComponent({
       const uname = flashStore.username
       if (!uname) return
       try {
-        await fetch(`https://ecash.flashapp.me/api/user/${uname}/receive-unit`, {
+        await fetch(`https://ecash.flashapp.me/api/receive-unit/${uname}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ unit }),
@@ -426,6 +426,27 @@ export default defineComponent({
         return
       }
 
+
+      // Ensure user is registered on the server (idempotent upsert)
+      if (flashStore.username) {
+        try {
+          const privHex = JSON.parse(localStorage.getItem('cashu.ndk.privateKeySignerPrivateKey') || 'null')
+          if (privHex && typeof privHex === 'string' && privHex.length === 64) {
+            const { secp256k1 } = await import('@noble/curves/secp256k1')
+            const { bech32 } = await import('@scure/base')
+            const privBytes = new Uint8Array(privHex.match(/.{2}/g).map((b: string) => parseInt(b, 16)))
+            const pubBytes = secp256k1.getPublicKey(privBytes, true)
+            const xOnly = pubBytes.slice(1)
+            const npub = bech32.encode('npub', bech32.toWords(xOnly))
+            await fetch('https://ecash.flashapp.me/api/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username: flashStore.username, npub })
+            })
+          }
+        } catch {}
+      }
+
       const mints = mintsStore.mints || []
       const hasFlash = mints.some((m: any) => m.url === FLASH_MINT)
       if (!hasFlash) {
@@ -442,7 +463,7 @@ export default defineComponent({
       // Sync receive unit preference from server
       if (flashStore.username) {
         try {
-          const ruRes = await fetch(`https://ecash.flashapp.me/api/user/${flashStore.username}/receive-unit`)
+          const ruRes = await fetch(`https://ecash.flashapp.me/api/receive-unit/${flashStore.username}`)
           if (ruRes.ok) {
             const ruData = await ruRes.json()
             receiveUnit.value = ruData.receiveUnit || 'usd'
