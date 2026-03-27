@@ -20,11 +20,11 @@
       </div>
       <div class="balance-label">YOUR BALANCE</div>
       <div class="balance-amount">
-        <span v-if="activeUnit === 'usd'">{{ formatUsd(totalBalance) }}</span>
+        <span v-if="activeUnit === 'usd'">{{ formatUsdUnit(totalBalance) }}</span>
         <span v-else>{{ formatBtc(totalBalance) }}</span>
       </div>
       <div class="balance-sub">
-        <span v-if="activeUnit === 'usd'">{{ totalBalance.toLocaleString() }} sats</span>
+        <span v-if="activeUnit === 'usd'">{{ totalBalance.toLocaleString() }} cents</span>
         <span v-else>{{ formatUsd(totalBalance) }}</span>
       </div>
       <div v-if="flashAddress" class="address-chip" @click="copyAddress">
@@ -269,14 +269,7 @@ export default defineComponent({
     let pollTimer: ReturnType<typeof setInterval> | null = null
 
     const activeUnit = computed(() => mintsStore.activeUnit || 'sat')
-    // Always use SAT balance — Lightning always mints SAT proofs, USD is display only
-    const satBalance = computed(() => {
-      const proofsStore = useProofsStore()
-      return proofsStore.proofs
-        .filter((p: any) => !p.reserved)
-        .reduce((sum: number, p: any) => sum + p.amount, 0)
-    })
-    const totalBalance = computed(() => satBalance.value)
+    const totalBalance = computed(() => mintsStore.totalUnitBalance)
 
     function setUnit(u: string) {
       mintsStore.activeUnit = u as any
