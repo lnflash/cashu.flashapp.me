@@ -2,13 +2,7 @@
   <div class="flash-wallet">
     <!-- Top bar -->
     <div class="flash-topbar">
-      <span class="flash-wordmark">Flash</span>
-      <button class="icon-btn" @click="showSettings = true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="2"/>
-        </svg>
-      </button>
+      
     </div>
 
     <!-- Balance card -->
@@ -89,7 +83,7 @@
     <div class="tx-section">
       <div class="tx-header">
         <span class="tx-title">Recent</span>
-        <span class="tx-see-all" @click="showAllTx = !showAllTx">See all</span>
+        <span class="tx-see-all" @click="goToFullHistory">{{ showAllTx ? 'See less' : 'See all' }}</span>
       </div>
       <div v-if="transactions.length === 0" class="tx-empty">
         No transactions yet. Share your address to receive sats.
@@ -106,7 +100,7 @@
           <div class="tx-sub">{{ txSubline(tx) }}</div>
         </div>
         <div class="tx-amount" :class="tx.amount > 0 ? 'tx-amount--in' : 'tx-amount--out'">
-          {{ tx.amount > 0 ? '+' : '' }}{{ activeUnit === 'usd' ? formatUsdUnit(Math.abs(tx.amount)) : Math.abs(tx.amount).toLocaleString() + ' sats' }}
+          {{ tx.amount > 0 ? '+' : '' }}{{ activeUnit === 'usd' ? formatUsd(Math.abs(tx.amount)) : Math.abs(tx.amount).toLocaleString() + ' sats' }}
         </div>
       </div>
     </div>
@@ -314,9 +308,20 @@ export default defineComponent({
     }
     const flashUsername = computed(() => flashStore.username)
 
-    const nsec = computed(() => {
-      try { return nostrStore.seedSignerPrivateKeyNsec || '' } catch { return '' }
-    })
+    const nsec = ref('')
+    // Derive nsec from the actual stored private key hex
+    ;(async () => {
+      try {
+        const privHex = JSON.parse(localStorage.getItem('cashu.ndk.privateKeySignerPrivateKey') || 'null')
+        if (privHex && typeof privHex === 'string' && privHex.length === 64) {
+          const { bech32 } = await import('@scure/base')
+          const privBytes = new Uint8Array((privHex.match(/.{2}/g) as string[]).map(b => parseInt(b, 16)))
+          nsec.value = bech32.encode('nsec', bech32.toWords(privBytes), false)
+          return
+        }
+      } catch {}
+      try { nsec.value = nostrStore.seedSignerPrivateKeyNsec || '' } catch {}
+    })()
 
     const transactions = computed(() => {
       return (tokensStore.historyTokens || [])
@@ -378,6 +383,18 @@ export default defineComponent({
     function openHistory() {
       showMore.value = false
       showAllTx.value = true
+      setTimeout(() => {
+        document.querySelector('.tx-section')?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    }
+
+    function goToFullHistory() {
+      showAllTx.value = !showAllTx.value
+      if (showAllTx.value) {
+        setTimeout(() => {
+          document.querySelector('.tx-section')?.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+      }
     }
 
     function openBackupKey() {
@@ -483,7 +500,7 @@ export default defineComponent({
       transactions, displayedTx,
       showSettings, showMore, showAllTx, showBackupKey, toastMsg,
       formatUsd, formatUsdUnit, formatBtc, txSubline, setUnit,
-      openSend, copyAddress, copyNsec,
+      openSend, copyAddress, copyNsec, goToFullHistory,
       goToMints, goToSettings, goToMintsFromMore, openHistory, openBackupKey, confirmReset,
       showScanner, openScanFromMore, onQrDecode,
     }
@@ -587,3 +604,4 @@ export default defineComponent({
 .scanner-wrap { border-radius: 14px; overflow: hidden; background: #000; }
 .scanner-hint { font-size: 13px; color: #666; text-align: center; margin-top: 14px; }
 </style>
+

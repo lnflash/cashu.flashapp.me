@@ -47,6 +47,7 @@
           </button>
         </div>
         <div class="input-hint" :class="nsecHintClass">{{ nsecHint }}</div>
+        <div v-if="importWarning" class="import-warning">⚠️ {{ importWarning }}</div>
 
         <button
           v-if="nsecValid"
@@ -95,8 +96,8 @@
     <div class="step-footer">
       <button
         class="btn btn-primary"
-        :disabled="!canContinue"
-        @click="$emit('next')"
+        :disabled="!canContinue && !nsecValid"
+        @click="nsecValid && !hasKey && !keyImported ? importKey() : $emit('next')"
       >
         Continue →
       </button>
@@ -106,14 +107,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from "vue";
+import { defineComponent, ref, computed, watch } from "vue";
 import { secp256k1 } from "@noble/curves/secp256k1";
 import { bech32 } from "@scure/base";
 
 export default defineComponent({
   name: "StepNostrKey",
   emits: ["next", "skip"],
-  setup() {
+  setup(_, { emit }) {
     const nsecInput = ref("");
     const showKey = ref(false);
     const showNsec = ref(false);
@@ -121,6 +122,10 @@ export default defineComponent({
     const generatedNsec = ref("");
     const confirmed = ref(false);
     const copied = ref(false);
+    const importWarning = ref("");
+    const nsecError = ref(""); // explicit error from checksum or import failure
+    const keyImported = ref(false); // reactive flag so Continue knows key was just imported
+
 
     const hasKey = computed(() => {
       try {
@@ -145,7 +150,36 @@ export default defineComponent({
     });
 
     const nsecValid = computed(() => {
-      return nsecInput.value.startsWith("nsec1") && nsecInput.value.length > 20;
+      const v = nsecInput.value;
+      if (!v || !v.startsWith("nsec1") || v.length < 60) return false;
+      try {
+        const { prefix } = bech32.decode(v);
+        return prefix === "nsec";
+      } catch {
+        return false;
+      }
+    });
+
+    // Warn if the pasted nsec is already registered to a different username
+    watch(nsecValid, async (valid) => {
+      if (!valid) { importWarning.value = ""; nsecError.value = ""; return; }
+      try {
+        const { secp256k1 } = await import("@noble/curves/secp256k1");
+        const { bech32: b32 } = await import("@scure/base");
+        const { words } = b32.decode(nsecInput.value);
+        const bytes = new Uint8Array(b32.fromWords(words));
+        const pubBytes = secp256k1.getPublicKey(bytes, true);
+        const npub = b32.encode("npub", b32.toWords(pubBytes.slice(1)));
+        const res = await fetch("https://ecash.flashapp.me/api/lookup-npub/" + npub).catch(() => null);
+        if (!res || !res.ok) return;
+        const data = await res.json();
+        const currentUser = (() => { try { return JSON.parse(localStorage.getItem("cashu.flashAddress.username") || "null"); } catch { return null; } })();
+        if (data.registered && data.username && data.username !== currentUser) {
+          importWarning.value = "This key is already registered as " + data.username + "@ecash.flashapp.me";
+        } else {
+          importWarning.value = "";
+        }
+      } catch { importWarning.value = ""; }
     });
 
     const nsecState = computed(() => {
@@ -155,11 +189,17 @@ export default defineComponent({
 
     const nsecHint = computed(() => {
       if (!nsecInput.value) return "";
-      return nsecValid.value ? "✓ Valid nsec" : "Must start with nsec1…";
+      if (nsecError.value) return nsecError.value;
+      if (nsecValid.value) return "✓ Valid nsec";
+      const v = nsecInput.value;
+      if (!v.startsWith("nsec1")) return "Must start with nsec1…";
+      if (v.length < 60) return "Key too short";
+      return "Invalid checksum — check for typos";
     });
 
     const nsecHintClass = computed(() => {
       if (!nsecInput.value) return "";
+      if (nsecError.value) return "hint-error";
       return nsecValid.value ? "hint-ok" : "hint-error";
     });
 
@@ -223,24 +263,23 @@ export default defineComponent({
 
     async function importKey() {
       if (!nsecValid.value) return;
+      nsecError.value = "";
       try {
         const { prefix, words } = bech32.decode(nsecInput.value);
-        if (prefix !== "nsec") return;
+        if (prefix !== "nsec") { nsecError.value = "Not a valid nsec key"; return; }
         const bytes = new Uint8Array(bech32.fromWords(words));
+        if (bytes.length !== 32) { nsecError.value = "Invalid key length"; return; }
         const privHex = Array.from(bytes)
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
-        localStorage.setItem(
-          "cashu.ndk.privateKeySignerPrivateKey",
-          JSON.stringify(privHex)
-        );
-        localStorage.setItem(
-          "cashu.ndk.signerType",
-          JSON.stringify("PRIVATEKEY")
-        );
-        nsecInput.value = "";
+        localStorage.setItem("cashu.ndk.privateKeySignerPrivateKey", JSON.stringify(privHex));
+        localStorage.setItem("cashu.ndk.signerType", JSON.stringify("PRIVATEKEY"));
         confirmed.value = true;
-      } catch {}
+        keyImported.value = true;
+        // Do not auto-advance; let user click Continue to see any warnings
+      } catch (e) {
+        nsecError.value = "Invalid key: " + (e instanceof Error ? e.message : String(e));
+      }
     }
 
     function copyNsec() {
@@ -260,6 +299,9 @@ export default defineComponent({
       generatedNsec,
       confirmed,
       copied,
+      importWarning,
+      nsecError,
+      keyImported,
       hasKey,
       shortPubkey,
       nsecValid,
