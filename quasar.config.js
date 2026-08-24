@@ -46,7 +46,7 @@ export default configure(function (/* ctx */) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli/boot-files
-    boot: ["base", "global-components", "cashu", "i18n"],
+    boot: ["base", "global-components", "i18n"],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ["app.scss", "base.scss"],
@@ -91,6 +91,12 @@ export default configure(function (/* ctx */) {
       extendViteConf(viteConf) {
         viteConf.define = viteConf.define || {};
         viteConf.define.GIT_COMMIT = JSON.stringify(resolveGitCommit());
+        // cashu-ts v4 ships ESM with BigInt — Vite's dep optimizer can mangle it
+        viteConf.optimizeDeps = viteConf.optimizeDeps || {};
+        viteConf.optimizeDeps.exclude = [
+          ...(viteConf.optimizeDeps.exclude || []),
+          "@cashu/cashu-ts",
+        ];
       },
       // viteVuePluginOptions: {},
 

@@ -28,6 +28,7 @@
 
       <q-card-section class="q-pa-md">
         <div class="q-gutter-y-md">
+          <!-- Ecash Option -->
           <div class="action-row" @click="toggleReceiveEcashDrawer">
             <div class="row items-center no-wrap">
               <div class="icon-circle">
@@ -41,7 +42,12 @@
             </div>
           </div>
 
-          <div class="action-row" @click="showInvoiceCreateDialog">
+          <!-- Lightning Invoice Option -->
+          <div
+            v-if="canReceiveLightning"
+            class="action-row"
+            @click="showInvoiceCreateDialog"
+          >
             <div class="row items-center no-wrap">
               <div class="icon-circle">
                 <ZapIcon :size="24" />
@@ -113,6 +119,22 @@
               </div>
             </div>
           </div>
+
+          <!-- On-chain Option -->
+          <div
+            v-if="canReceiveOnchain"
+            class="action-row"
+            @click="showOnchainCreateDialog"
+          >
+            <div class="row items-center no-wrap">
+              <div class="icon-circle">
+                <BitcoinIcon :size="24" />
+              </div>
+              <div class="col q-ml-md">
+                <div class="text-body1 text-weight-medium">On-chain</div>
+              </div>
+            </div>
+          </div>
         </div>
       </q-card-section>
     </q-card>
@@ -129,21 +151,22 @@ import { useWalletStore } from "src/stores/wallet";
 import { useCameraStore } from "src/stores/camera";
 import ReceiveEcashDrawer from "src/components/ReceiveEcashDrawer.vue";
 import { useMintsStore } from "src/stores/mints";
-import {
-  notifyError,
-  notifySuccess,
-  notify,
-  notifyWarning,
-} from "src/js/notify.ts";
+import { notifyWarning } from "src/js/notify.ts";
 import {
   X as XIcon,
   Coins as CoinsIcon,
   Zap as ZapIcon,
   Scan as ScanIcon,
   Copy as CopyIcon,
+  Bitcoin as BitcoinIcon,
 } from "lucide-vue-next";
 import VueQrcode from "@chenfengyuan/vue-qrcode";
 import { useFlashAddressStore } from "src/stores/flashAddress";
+import { PaymentMethod } from "src/stores/walletTypes";
+import {
+  ensurePaymentMintActive,
+  firstMintSupportingPaymentMethods,
+} from "src/js/mint-payment-methods";
 
 export default defineComponent({
   name: "ReceiveDialog",
@@ -153,6 +176,7 @@ export default defineComponent({
     ZapIcon,
     ScanIcon,
     CopyIcon,
+    BitcoinIcon,
     ReceiveEcashDrawer,
     VueQrcode,
   },
@@ -168,6 +192,7 @@ export default defineComponent({
   computed: {
     ...mapWritableState(useUiStore, [
       "showInvoiceDetails",
+      "showBolt12OfferDetails",
       "showReceiveDialog",
       "showReceiveEcashDrawer",
       "showCreateInvoiceDialog",
@@ -177,7 +202,7 @@ export default defineComponent({
       "receiveData",
     ]),
     ...mapWritableState(useWalletStore, ["invoiceData"]),
-    ...mapState(useMintsStore, ["mints"]),
+    ...mapState(useMintsStore, ["mints", "activeMintUrl", "activeUnit"]),
     flashStore: function () {
       return useFlashAddressStore();
     },
@@ -188,8 +213,31 @@ export default defineComponent({
         return true;
       }
     },
+    canReceiveLightning: function (): boolean {
+      return Boolean(
+        firstMintSupportingPaymentMethods(
+          this.mints as any,
+          this.activeMintUrl as string,
+          [PaymentMethod.Bolt11, PaymentMethod.Bolt12],
+          "mint",
+          this.activeUnit as string
+        )
+      );
+    },
+    canReceiveOnchain: function (): boolean {
+      return Boolean(
+        firstMintSupportingPaymentMethods(
+          this.mints as any,
+          this.activeMintUrl as string,
+          [PaymentMethod.Onchain],
+          "mint",
+          this.activeUnit as string
+        )
+      );
+    },
   },
   methods: {
+    ...mapActions(useMintsStore, ["selectMintUrl"]),
     toggleReceiveEcashDrawer: function () {
       this.showReceiveDialog = false;
       this.showReceiveTokens = false;
@@ -201,7 +249,15 @@ export default defineComponent({
       this.showReceiveDialog = false;
     },
     showInvoiceCreateDialog: async function () {
-      if (!this.canReceivePayments) {
+      const mintResult = await ensurePaymentMintActive(
+        this.mints as any,
+        this.activeMintUrl as string,
+        this.selectMintUrl,
+        [PaymentMethod.Bolt11, PaymentMethod.Bolt12],
+        "mint",
+        this.activeUnit as string
+      );
+      if (!mintResult.ok) {
         notifyWarning(
           this.$i18n.t("ReceiveDialog.actions.lightning.error_no_mints")
         );
@@ -210,9 +266,32 @@ export default defineComponent({
       }
       console.log("##### showInvoiceCreateDialog");
       this.invoiceData.amount = "";
-      this.invoiceData.bolt11 = "";
+      this.invoiceData.request = "";
       this.invoiceData.hash = "";
       this.invoiceData.memo = "";
+      this.invoiceData.type = mintResult.method;
+      this.showCreateInvoiceDialog = true;
+      this.showReceiveDialog = false;
+    },
+    showOnchainCreateDialog: async function () {
+      const mintResult = await ensurePaymentMintActive(
+        this.mints as any,
+        this.activeMintUrl as string,
+        this.selectMintUrl,
+        [PaymentMethod.Onchain],
+        "mint",
+        this.activeUnit as string
+      );
+      if (!mintResult.ok) {
+        notifyWarning("No mints available");
+        this.showReceiveDialog = false;
+        return;
+      }
+      this.invoiceData.amount = 0;
+      this.invoiceData.request = "";
+      this.invoiceData.hash = "";
+      this.invoiceData.memo = "";
+      this.invoiceData.type = PaymentMethod.Onchain;
       this.showCreateInvoiceDialog = true;
       this.showReceiveDialog = false;
     },
@@ -232,7 +311,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-::v-deep .q-dialog__backdrop {
+:deep(.q-dialog__backdrop) {
   backdrop-filter: blur(8px);
   background: rgba(0, 0, 0, 0.4) !important;
 }

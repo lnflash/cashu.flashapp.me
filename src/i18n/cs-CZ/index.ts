@@ -83,6 +83,7 @@ export default {
       no_lnurl_data: "Žádná LNURL data",
       no_price_data: "Žádná cenová data.",
       please_try_again: "Zkuste to prosím znovu.",
+      trying_again: "Zkouší se znovu...",
     },
     mint: {
       notifications: {
@@ -1049,6 +1050,8 @@ export default {
     errors: {
       amount_required: "Nejprve zadejte částku.",
       serialization_failed: "Nepodařilo se připravit ecash token.",
+      mint_not_allowed_by_request:
+        "Vybraný mint není tímto platebním požadavkem přijímán.",
     },
   },
 

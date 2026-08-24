@@ -85,6 +85,9 @@ export default {
       no_lnurl_data: "No LNURL data",
       no_price_data: "No price data.",
       please_try_again: "Please try again.",
+      trying_again: "Trying again...",
+      no_bolt12_mint: "None of your mints support BOLT12 offers",
+      no_bolt11_mint: "None of your mints support BOLT11 invoices",
     },
     mint: {
       notifications: {
@@ -1039,6 +1042,8 @@ export default {
     errors: {
       amount_required: "Enter an amount first.",
       serialization_failed: "Could not prepare ecash token.",
+      mint_not_allowed_by_request:
+        "The selected mint is not accepted by this payment request.",
     },
   },
   SendPaymentRequest: {
@@ -1385,6 +1390,7 @@ export default {
   PayInvoiceDialog: {
     input_data: {
       title: "Pay Lightning",
+      title_bolt12: "Pay Lightning Bolt12",
       inputs: {
         invoice_data: {
           label: "Lightning invoice or address",
