@@ -1,165 +1,158 @@
 <template>
-  <FlashShell>
-    <div class="row q-col-gutter-y-md justify-center q-pt-sm q-pb-md">
-      <div class="col-12 col-sm-11 col-md-8 text-center q-gutter-y-md">
-        <ActivityOrb />
-        <NoMintWarnBanner v-if="mints.length == 0" />
-        <BalanceView v-else :set-tab="setTab" />
-        <div
-          class="row items-center justify-center no-wrap q-mb-none q-mx-none q-px-none q-pt-lg q-pb-md position-relative"
-        >
-          <div class="col-6 q-mb-md flex justify-center items-center">
-            <q-btn
-              rounded
-              dense
-              class="q-px-md q-mr-md wallet-action-btn"
-              color="primary"
-              @click="showReceiveDialog = true"
-            >
-              <div class="button-content">
-                <span>{{ $t("WalletPage.actions.receive.label") }}</span>
-              </div>
-            </q-btn>
-          </div>
-
-          <transition appear enter-active-class="animated pulse">
-            <div class="scan-button-container">
-              <q-btn size="lg" outline color="primary" flat @click="showCamera">
-                <ScanIcon size="2em" />
-              </q-btn>
+  <div class="row q-col-gutter-y-md justify-center q-pt-sm q-pb-md">
+    <div class="col-12 col-sm-11 col-md-8 text-center q-gutter-y-md">
+      <ActivityOrb />
+      <NoMintWarnBanner v-if="mints.length == 0" />
+      <BalanceView v-else :set-tab="setTab" />
+      <div
+        class="row items-center justify-center no-wrap q-mb-none q-mx-none q-px-none q-pt-lg q-pb-md position-relative"
+      >
+        <div class="col-6 q-mb-md flex justify-center items-center">
+          <q-btn
+            rounded
+            dense
+            class="q-px-md q-mr-md wallet-action-btn"
+            color="primary"
+            @click="showReceiveDialog = true"
+          >
+            <div class="button-content">
+              <span>{{ $t("WalletPage.actions.receive.label") }}</span>
             </div>
-          </transition>
+          </q-btn>
+        </div>
 
-          <!-- button to showSendDialog -->
-          <div class="col-6 q-mb-md flex justify-center items-center">
-            <q-btn
-              rounded
-              dense
-              class="q-px-md q-ml-md wallet-action-btn"
-              color="primary"
-              @click="showSendDialog = true"
-            >
-              <div class="button-content">
-                <span>{{ $t("WalletPage.actions.send.label") }}</span>
-              </div>
+        <transition appear enter-active-class="animated pulse">
+          <div class="scan-button-container">
+            <q-btn size="lg" outline color="primary" flat @click="showCamera">
+              <ScanIcon size="2em" />
             </q-btn>
           </div>
-          <ReceiveDialog v-model="showReceiveDialog" />
-          <SendDialog v-model="showSendDialog" />
+        </transition>
+
+        <!-- button to showSendDialog -->
+        <div class="col-6 q-mb-md flex justify-center items-center">
+          <q-btn
+            rounded
+            dense
+            class="q-px-md q-ml-md wallet-action-btn"
+            color="primary"
+            @click="showSendDialog = true"
+          >
+            <div class="button-content">
+              <span>{{ $t("WalletPage.actions.send.label") }}</span>
+            </div>
+          </q-btn>
         </div>
-        <!-- ///////////////////////////////////////////
+        <ReceiveDialog v-model="showReceiveDialog" />
+        <SendDialog v-model="showSendDialog" />
+      </div>
+      <!-- ///////////////////////////////////////////
       ////////////////// TABLES /////////////////
       /////////////////////////////////////////// -->
-        <q-expansion-item expand-icon-class="hidden" v-model="expandHistory">
-          <template v-slot:header="{ expanded }">
-            <q-item-section class="item-center text-center">
-              <span
-                ><q-icon
-                  color="primary"
-                  :name="
-                    expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
-                  "
-              /></span>
-            </q-item-section>
-          </template>
-          <q-tabs
-            v-model="tab"
-            no-caps
-            :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
-          >
-            <q-tab
-              name="history"
-              class="text-secondary"
-              :label="$t('WalletPage.tabs.history.label')"
-            ></q-tab>
-            <!-- <q-tab name="tokens" label="Tokens"></q-tab> -->
-            <q-tab
-              name="mints"
-              class="text-secondary"
-              :label="$t('WalletPage.tabs.mints.label')"
-            ></q-tab>
-          </q-tabs>
-
-          <q-tab-panels
-            :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
-            v-model="tab"
-            animated
-          >
-            <!-- ////////////////// UNIFIED HISTORY LIST ///////////////// -->
-
-            <q-tab-panel name="history">
-              <HistoryTable />
-            </q-tab-panel>
-
-            <!-- ////////////////////// SETTINGS ////////////////// -->
-
-            <q-tab-panel name="mints" class="q-px-sm">
-              <MintSettings />
-            </q-tab-panel>
-          </q-tab-panels>
-        </q-expansion-item>
-
-        <div style="margin-bottom: 0rem">
-          <div class="row q-pt-sm">
-            <div class="col-12 q-pt-xs">
-              <q-btn
-                class="q-mx-xs q-px-sm q-my-sm"
-                outline
-                size="0.6rem"
-                v-if="
-                  getPwaDisplayMode() == 'browser' &&
-                  deferredPWAInstallPrompt != null
-                "
+      <q-expansion-item expand-icon-class="hidden" v-model="expandHistory">
+        <template v-slot:header="{ expanded }">
+          <q-item-section class="item-center text-center">
+            <span
+              ><q-icon
                 color="primary"
-                @click="triggerPwaInstall()"
-                ><b>{{ $t("WalletPage.install.text") }}</b
-                ><q-tooltip>{{
-                  $t("WalletPage.install.tooltip")
-                }}</q-tooltip></q-btn
-              >
-            </div>
+                :name="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+            /></span>
+          </q-item-section>
+        </template>
+        <q-tabs
+          v-model="tab"
+          no-caps
+          :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
+        >
+          <q-tab
+            name="history"
+            class="text-secondary"
+            :label="$t('WalletPage.tabs.history.label')"
+          ></q-tab>
+          <!-- <q-tab name="tokens" label="Tokens"></q-tab> -->
+          <q-tab
+            name="mints"
+            class="text-secondary"
+            :label="$t('WalletPage.tabs.mints.label')"
+          ></q-tab>
+        </q-tabs>
+
+        <q-tab-panels
+          :class="$q.dark.isActive ? 'bg-dark' : 'bg-white'"
+          v-model="tab"
+          animated
+        >
+          <!-- ////////////////// UNIFIED HISTORY LIST ///////////////// -->
+
+          <q-tab-panel name="history">
+            <HistoryTable />
+          </q-tab-panel>
+
+          <!-- ////////////////////// SETTINGS ////////////////// -->
+
+          <q-tab-panel name="mints" class="q-px-sm">
+            <MintSettings />
+          </q-tab-panel>
+        </q-tab-panels>
+      </q-expansion-item>
+
+      <div style="margin-bottom: 0rem">
+        <div class="row q-pt-sm">
+          <div class="col-12 q-pt-xs">
+            <q-btn
+              class="q-mx-xs q-px-sm q-my-sm"
+              outline
+              size="0.6rem"
+              v-if="
+                getPwaDisplayMode() == 'browser' &&
+                deferredPWAInstallPrompt != null
+              "
+              color="primary"
+              @click="triggerPwaInstall()"
+              ><b>{{ $t("WalletPage.install.text") }}</b
+              ><q-tooltip>{{
+                $t("WalletPage.install.tooltip")
+              }}</q-tooltip></q-btn
+            >
           </div>
         </div>
-
-        <iOSPWAPrompt />
-        <AndroidPWAPrompt />
       </div>
 
-      <!-- BOTTOM LIGHTNING BUTTONS -->
-
-      <!-- DIALOGS  -->
-
-      <!-- INPUT PARSER  -->
-      <PayInvoiceDialog v-model="payInvoiceData.show" />
-
-      <!-- QR CODE SCANNER  -->
-      <q-dialog
-        v-model="camera.show"
-        backdrop-filter="blur(2px) brightness(60%)"
-      >
-        <QrcodeReader @decode="decodeQR" />
-      </q-dialog>
-
-      <!-- WELCOME DIALOG  -->
-      <WelcomeDialog
-        :welcome-dialog="welcomeDialog"
-        :trigger-pwa-install="triggerPwaInstall"
-        :set-tab="setTab"
-        :get-pwa-display-mode="getPwaDisplayMode"
-        :set-welcome-dialog-seen="setWelcomeDialogSeen"
-      />
-
-      <!-- INVOICE DETAILS  -->
-      <CreateInvoiceDialog v-model="showCreateInvoiceDialog" />
-      <InvoiceDetailDialog v-model="showInvoiceDetails" />
-
-      <!-- SEND TOKENS DIALOG  -->
-      <SendTokenDialog v-model="showSendTokens" />
-
-      <!-- RECEIVE TOKENS DIALOG  -->
-      <ReceiveTokenDialog v-model="showReceiveTokens" />
+      <iOSPWAPrompt />
+      <AndroidPWAPrompt />
     </div>
-  </FlashShell>
+
+    <!-- BOTTOM LIGHTNING BUTTONS -->
+
+    <!-- DIALOGS  -->
+
+    <!-- INPUT PARSER  -->
+    <PayInvoiceDialog v-model="payInvoiceData.show" />
+
+    <!-- QR CODE SCANNER  -->
+    <q-dialog v-model="camera.show" backdrop-filter="blur(2px) brightness(60%)">
+      <QrcodeReader @decode="decodeQR" />
+    </q-dialog>
+
+    <!-- WELCOME DIALOG  -->
+    <WelcomeDialog
+      :welcome-dialog="welcomeDialog"
+      :trigger-pwa-install="triggerPwaInstall"
+      :set-tab="setTab"
+      :get-pwa-display-mode="getPwaDisplayMode"
+      :set-welcome-dialog-seen="setWelcomeDialogSeen"
+    />
+
+    <!-- INVOICE DETAILS  -->
+    <CreateInvoiceDialog v-model="showCreateInvoiceDialog" />
+    <InvoiceDetailDialog v-model="showInvoiceDetails" />
+
+    <!-- SEND TOKENS DIALOG  -->
+    <SendTokenDialog v-model="showSendTokens" />
+
+    <!-- RECEIVE TOKENS DIALOG  -->
+    <ReceiveTokenDialog v-model="showReceiveTokens" />
+  </div>
 </template>
 <style>
 * {
@@ -210,6 +203,7 @@
 import { date } from "quasar";
 import * as _ from "underscore";
 import { shortenString } from "src/js/string-utils";
+import { sumProofAmounts } from "src/js/proofs";
 import token from "src/js/token";
 
 // Vue components
@@ -242,6 +236,7 @@ import { useProofsStore } from "src/stores/proofs";
 import { useCameraStore } from "src/stores/camera";
 import { useP2PKStore } from "src/stores/p2pk";
 import { useNWCStore } from "src/stores/nwc";
+// @ts-ignore
 import { useNPCStore } from "src/stores/npubcash";
 import { useNPCV2Store } from "src/stores/npcv2";
 import { useFlashAddressStore } from "src/stores/flashAddress";
@@ -265,6 +260,9 @@ import {
 
 import { useMigrationsStore } from "src/stores/migrations";
 
+declare const windowMixin: any;
+declare const GIT_COMMIT: string;
+
 export default {
   mixins: [windowMixin],
   components: {
@@ -285,31 +283,15 @@ export default {
     AndroidPWAPrompt,
     ScanIcon,
     ActivityOrb,
-    FlashShell,
   },
   data: function () {
     return {
       name: "",
       mintId: "",
       mintName: "",
-      deferredPWAInstallPrompt: null,
+      deferredPWAInstallPrompt: null as any,
       action: "main",
-      parse: {
-        show: false,
-        invoice: null,
-        lnurlpay: null,
-        lnurlauth: null,
-        data: {
-          request: "",
-          amount: 0,
-          comment: "",
-        },
-        camera: {
-          show: false,
-          camera: "auto",
-        },
-      },
-      payments: [],
+      payments: [] as any[],
       paymentsChart: {
         show: false,
       },
@@ -326,6 +308,7 @@ export default {
     ...mapState(useUiStore, ["tickerShort"]),
     ...mapWritableState(useUiStore, [
       "showInvoiceDetails",
+      "showBolt12OfferDetails",
       "showCreateInvoiceDialog",
       "tab",
       "showSendDialog",
@@ -364,13 +347,9 @@ export default {
     },
 
     balance: function () {
-      return this.activeProofs
-        .map((t) => t)
-        .flat()
-        .reduce((sum, el) => (sum += el.amount), 0);
+      return sumProofAmounts(this.activeProofs.flat());
     },
   },
-  filters: {},
   methods: {
     ...mapActions(useProofsStore, [
       "serializeProofs",
@@ -425,13 +404,6 @@ export default {
       "checkPendingInvoices",
     ]),
     // TOKEN METHODS
-    decodeToken: function (encoded_token) {
-      try {
-        return token.decode(encoded_token);
-      } catch (e) {
-        return null;
-      }
-    },
     getProofs: function (decoded_token) {
       return token.getProofs(decoded_token);
     },
@@ -444,7 +416,7 @@ export default {
     },
     getTokenList: function () {
       const amounts = this.activeProofs.map((t) => t.amount);
-      const counts = {};
+      const counts = {} as any;
 
       for (const num of amounts) {
         counts[num] = counts[num] ? counts[num] + 1 : 1;
@@ -452,7 +424,7 @@ export default {
       return Object.keys(counts).map((k) => ({
         value: parseInt(k),
         count: parseInt(counts[k]),
-        sum: k * counts[k],
+        sum: Number(k) * counts[k],
       }));
     },
 
@@ -462,7 +434,7 @@ export default {
     showChart: function () {
       this.paymentsChart.show = true;
       this.$nextTick(() => {
-        generateChart(this.$refs.canvas, this.payments);
+        // generateChart(this.$refs.canvas, this.payments);
       });
     },
     focusInput(el) {
@@ -502,7 +474,7 @@ export default {
     showInvoiceCreateDialog: async function () {
       console.log("##### showInvoiceCreateDialog");
       this.invoiceData.amount = "";
-      this.invoiceData.bolt11 = "";
+      this.invoiceData.request = "";
       this.invoiceData.hash = "";
       this.invoiceData.memo = "";
       this.showCreateInvoiceDialog = true;
@@ -547,9 +519,10 @@ export default {
       const isStandalone = window.matchMedia(
         "(display-mode: standalone)"
       ).matches;
+      // @ts-ignore
       if (document.referrer.startsWith("android-app://")) {
         return "twa";
-      } else if (navigator.standalone || isStandalone) {
+      } else if ((navigator as any).standalone || isStandalone) {
         return "standalone";
       }
       return "browser";
@@ -562,6 +535,7 @@ export default {
       this.deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
           console.log("User accepted the install prompt");
+          // @ts-ignore
           this.setWelcomeDialogSeen();
         } else {
           console.log("User dismissed the install prompt");
@@ -598,18 +572,18 @@ export default {
         if (actionBtns.length >= 2) {
           // Reset widths first
           actionBtns.forEach((btn) => {
-            btn.style.width = "auto";
+            (btn as HTMLElement).style.width = "auto";
           });
 
           // Get the maximum width
           let maxWidth = 0;
           actionBtns.forEach((btn) => {
-            maxWidth = Math.max(maxWidth, btn.offsetWidth);
+            maxWidth = Math.max(maxWidth, (btn as HTMLElement).offsetWidth);
           });
 
           // Apply the maximum width to all buttons
           actionBtns.forEach((btn) => {
-            btn.style.width = `${maxWidth}px`;
+            (btn as HTMLElement).style.width = `${maxWidth}px`;
           });
         }
       });
@@ -640,7 +614,17 @@ export default {
   },
 
   created: async function () {
-    console.log(`Git commit: ${GIT_COMMIT}`);
+    // @ts-ignore
+    if (typeof GIT_COMMIT !== "undefined") {
+      console.log(`Git commit: ${GIT_COMMIT}`);
+    }
+
+    // Redirect to /setup on first visit (before anything else loads)
+    const SETUP_DONE_KEY = "cashu.flash.setupDone";
+    if (!localStorage.getItem(SETUP_DONE_KEY)) {
+      this.$router.replace("/setup");
+      return;
+    }
 
     // Initialize and run migrations
     const migrationsStore = useMigrationsStore();
@@ -650,12 +634,12 @@ export default {
     // check if another tab is open
     this.registerBroadcastChannel();
 
-    const params = new URL(document.location).searchParams;
-    const hash = new URL(document.location).hash;
+    const params = new URL(document.location as any).searchParams;
+    const hash = new URL(document.location as any).hash;
 
     // mint url
     if (params.get("mint")) {
-      const addMintUrl = params.get("mint");
+      const addMintUrl = params.get("mint") as string;
       await this.setTab("mints");
       this.showAddMintDialog = true;
       this.addMintData = { url: addMintUrl };
@@ -669,7 +653,8 @@ export default {
 
     // get token to receive tokens from a link
     if (params.get("token") || hash.includes("token")) {
-      const tokenBase64 = params.get("token") || hash.split("token=")[1];
+      const tokenBase64 = (params.get("token") ||
+        hash.split("token=")[1]) as string;
       // make sure to react only to tokens not in the users history
       let seen = false;
       for (let i = 0; i < this.historyTokens.length; i++) {
@@ -688,7 +673,7 @@ export default {
     // get lightning invoice from a link
     if (params.get("lightning")) {
       this.showParseDialog();
-      this.payInvoiceData.input.request = params.get("lightning");
+      this.payInvoiceData.input.request = params.get("lightning") as string;
     }
 
     // Clear all parameters from URL without refreshing the page
@@ -728,8 +713,10 @@ export default {
 
     this.initSigner();
 
-    // show welcome dialog
-    this.showWelcomePage();
+    // Suppress cashu.me stock welcome — FlashShell handles onboarding
+    useWelcomeStore().showWelcome = false;
+    // show welcome dialog - disabled, FlashShell handles this
+    // this.showWelcomePage();
 
     // listen to NWC commands if enabled
     if (this.nwcEnabled) {

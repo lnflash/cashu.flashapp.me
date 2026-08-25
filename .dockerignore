@@ -10,3 +10,7 @@ yarn-error.log*
 *.local
 coverage
 .nyc_output
+src-capacitor
+src-cordova
+src-electron
+.vscode
