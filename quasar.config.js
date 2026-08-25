@@ -8,8 +8,12 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-const { configure } = require("quasar/wrappers");
-const { execSync } = require("child_process");
+import { configure } from "quasar/wrappers";
+import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function resolveGitCommit() {
   try {
@@ -25,7 +29,7 @@ function resolveGitCommit() {
   }
 }
 
-module.exports = configure(function (/* ctx */) {
+export default configure(function (/* ctx */) {
   return {
     eslint: {
       // fix: true,
@@ -42,7 +46,7 @@ module.exports = configure(function (/* ctx */) {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli/boot-files
-    boot: ["base", "global-components", "cashu", "i18n"],
+    boot: ["base", "global-components", "i18n"],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
     css: ["app.scss", "base.scss"],
@@ -59,7 +63,6 @@ module.exports = configure(function (/* ctx */) {
 
       "roboto-font", // optional, you are not bound to it
       "material-icons", // optional, you are not bound to it
-      ,
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
@@ -88,6 +91,12 @@ module.exports = configure(function (/* ctx */) {
       extendViteConf(viteConf) {
         viteConf.define = viteConf.define || {};
         viteConf.define.GIT_COMMIT = JSON.stringify(resolveGitCommit());
+        // cashu-ts v4 ships ESM with BigInt — Vite's dep optimizer can mangle it
+        viteConf.optimizeDeps = viteConf.optimizeDeps || {};
+        viteConf.optimizeDeps.exclude = [
+          ...(viteConf.optimizeDeps.exclude || []),
+          "@cashu/cashu-ts",
+        ];
       },
       // viteVuePluginOptions: {},
 
@@ -160,7 +169,7 @@ module.exports = configure(function (/* ctx */) {
 
     // https://v2.quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: "generateSW", // or 'injectManifest'
+      workboxMode: "GenerateSW", // or 'injectManifest'
       injectPwaMetaTags: true,
       swFilename: "sw.js",
       manifestFilename: "manifest.json",
