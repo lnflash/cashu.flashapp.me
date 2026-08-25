@@ -85,7 +85,7 @@ const routes = [
     ],
   },
 
-    {
+  {
     path: "/mints",
     component: () => import("layouts/FullscreenLayout.vue"),
     children: [

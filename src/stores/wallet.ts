@@ -793,9 +793,13 @@ export const useWalletStore = defineStore("wallet", {
           throw new Error("no invoice provided.");
         }
         // Issue 2: pre-flight check for zero-amount invoices
-        const invoiceSat = this.payInvoiceData.invoice?.sat ?? this.payInvoiceData.invoice?.fsat ?? 0;
+        const invoiceSat =
+          this.payInvoiceData.invoice?.sat ??
+          this.payInvoiceData.invoice?.fsat ??
+          0;
         if (!invoiceSat || invoiceSat === 0) {
-          const msg = "This invoice has no fixed amount. Please use an invoice with a specific amount.";
+          const msg =
+            "This invoice has no fixed amount. Please use an invoice with a specific amount.";
           notifyError(msg, "Cannot pay");
           this.payInvoiceData.blocking = false;
           return;
@@ -814,57 +818,20 @@ export const useWalletStore = defineStore("wallet", {
       } catch (error: any) {
         this.payInvoiceData.meltQuote.error = error;
         console.error(error);
-        if (error?.message?.toLowerCase().includes("invoice has no amount") ||
-            error?.message?.toLowerCase().includes("no amount")) {
-          notifyError("This invoice has no fixed amount. Please use an invoice with a specific amount.", "Cannot pay");
+        if (
+          error?.message?.toLowerCase().includes("invoice has no amount") ||
+          error?.message?.toLowerCase().includes("no amount")
+        ) {
+          notifyError(
+            "This invoice has no fixed amount. Please use an invoice with a specific amount.",
+            "Cannot pay"
+          );
         } else {
           notifyApiError(error);
         }
         throw error;
       } finally {
         this.payInvoiceData.blocking = false;
-      }
-    },
-    meltQuote: async function (
-      wallet: CashuWallet,
-      request: string,
-      mpp_amount: number | undefined = undefined
-    ): Promise<MeltQuoteResponse> {
-      const mintStore = useMintsStore();
-      let data;
-      if (mpp_amount) {
-        data = await wallet.createMultiPathMeltQuote(
-          request,
-          mpp_amount * 1000
-        );
-      } else {
-        data = await wallet.createMeltQuote(request);
-      }
-
-      mintStore.assertMintError(data);
-      return data;
-    },
-    meltInvoiceData: async function (silent?: boolean) {
-      if (this.payInvoiceData.invoice == null) {
-        throw new Error("no invoice provided.");
-      }
-      const quote = this.payInvoiceData.meltQuote.response;
-      if (quote == null) {
-        throw new Error("no quote found.");
-      }
-      const request = this.payInvoiceData.invoice.bolt11;
-      if (
-        this.payInvoiceData?.invoice &&
-        (this.payInvoiceData.invoice as any).onchain
-      ) {
-        return await meltQuoteInvoiceDataOnchain.call(this);
-      } else if (
-        this.payInvoiceData?.invoice &&
-        (this.payInvoiceData.invoice as any).bolt12
-      ) {
-        return await meltQuoteInvoiceDataBolt12.call(this);
-      } else {
-        return await meltQuoteInvoiceDataBolt11.call(this);
       }
     },
     meltQuote: meltQuoteBolt11,

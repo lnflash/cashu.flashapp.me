@@ -12,10 +12,13 @@ import SetupWizard from "./wizard/SetupWizard.vue";
 const SETUP_DONE_KEY = "cashu.flash.setupDone";
 
 function isFirstVisit(): boolean {
-      // Always suppress cashu.me stock welcome — we handle onboarding in FlashShell
-      localStorage.setItem('cashu.welcome.showWelcome', JSON.stringify(false));
-      localStorage.setItem('cashu.welcome.termsAccepted', JSON.stringify(true));
-      localStorage.setItem('cashu.welcome.mintSetupCompleted', JSON.stringify(true));
+  // Always suppress cashu.me stock welcome — we handle onboarding in FlashShell
+  localStorage.setItem("cashu.welcome.showWelcome", JSON.stringify(false));
+  localStorage.setItem("cashu.welcome.termsAccepted", JSON.stringify(true));
+  localStorage.setItem(
+    "cashu.welcome.mintSetupCompleted",
+    JSON.stringify(true)
+  );
   return !localStorage.getItem(SETUP_DONE_KEY);
 }
 

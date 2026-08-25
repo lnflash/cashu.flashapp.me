@@ -15,14 +15,7 @@
  * 8. API integration — live server endpoints
  */
 
-import {
-  describe,
-  test,
-  expect,
-  beforeEach,
-  afterEach,
-  vi,
-} from "vitest";
+import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -163,11 +156,17 @@ describe("mints store", () => {
 
   test("addMint rejects for unreachable URL", async () => {
     // Mock fetch to simulate unreachable host — avoids real DNS lookup in tests
-    const fetchSpy = vi.spyOn(global, "fetch").mockRejectedValue(new Error("Network request failed"));
+    const fetchSpy = vi
+      .spyOn(global, "fetch")
+      .mockRejectedValue(new Error("Network request failed"));
     const { useMintsStore } = await import("src/stores/mints");
     const store = useMintsStore();
     let threw = false;
-    try { await store.addMint({ url: "https://unreachable-test-mint.local" }); } catch { threw = true; }
+    try {
+      await store.addMint({ url: "https://unreachable-test-mint.local" });
+    } catch {
+      threw = true;
+    }
     fetchSpy.mockRestore();
     expect(threw).toBe(true);
   });
@@ -235,16 +234,35 @@ describe("FlashReceivePage — ensureFlashMint", () => {
 
 describe("Wizard — username validation", () => {
   const RESERVED = [
-    "patoo", "vandana", "calypso", "naomi", "sparks", "jake", "corazon",
-    "lori", "scribe", "pulse", "admin", "root", "api", "www", "support",
-    "help", "you", "test", "flash", "demo", "user",
+    "patoo",
+    "vandana",
+    "calypso",
+    "naomi",
+    "sparks",
+    "jake",
+    "corazon",
+    "lori",
+    "scribe",
+    "pulse",
+    "admin",
+    "root",
+    "api",
+    "www",
+    "support",
+    "help",
+    "you",
+    "test",
+    "flash",
+    "demo",
+    "user",
   ];
 
   function validateUsername(name: string): string | null {
     if (!name) return "Required";
     if (name.length < 3) return "Too short (min 3)";
     if (name.length > 30) return "Too long (max 30)";
-    if (!/^[a-z0-9_-]+$/.test(name)) return "Only lowercase letters, numbers, _ or -";
+    if (!/^[a-z0-9_-]+$/.test(name))
+      return "Only lowercase letters, numbers, _ or -";
     if (RESERVED.includes(name)) return "That name is reserved";
     return null; // valid
   }
@@ -285,7 +303,18 @@ describe("Wizard — username validation", () => {
   });
 
   test("rejects all agent reserved names", () => {
-    const agents = ["patoo", "vandana", "calypso", "naomi", "sparks", "jake", "corazon", "lori", "scribe", "pulse"];
+    const agents = [
+      "patoo",
+      "vandana",
+      "calypso",
+      "naomi",
+      "sparks",
+      "jake",
+      "corazon",
+      "lori",
+      "scribe",
+      "pulse",
+    ];
     for (const name of agents) {
       expect(validateUsername(name)).not.toBeNull();
     }
@@ -340,15 +369,25 @@ describe("Wizard — Nostr key generation", () => {
     // Simulate what FlashWalletPage.onMounted does before redirecting
     localStorage.setItem("cashu.welcome.showWelcome", JSON.stringify(false));
     localStorage.setItem("cashu.welcome.termsAccepted", JSON.stringify(true));
-    localStorage.setItem("cashu.welcome.mintSetupCompleted", JSON.stringify(true));
+    localStorage.setItem(
+      "cashu.welcome.mintSetupCompleted",
+      JSON.stringify(true)
+    );
 
-    expect(JSON.parse(localStorage.getItem("cashu.welcome.showWelcome")!)).toBe(false);
-    expect(JSON.parse(localStorage.getItem("cashu.welcome.termsAccepted")!)).toBe(true);
+    expect(JSON.parse(localStorage.getItem("cashu.welcome.showWelcome")!)).toBe(
+      false
+    );
+    expect(
+      JSON.parse(localStorage.getItem("cashu.welcome.termsAccepted")!)
+    ).toBe(true);
   });
 
   test("private key stored as hex string in localStorage", () => {
     const mockHex = "a".repeat(64);
-    localStorage.setItem("cashu.ndk.privateKeySignerPrivateKey", JSON.stringify(mockHex));
+    localStorage.setItem(
+      "cashu.ndk.privateKeySignerPrivateKey",
+      JSON.stringify(mockHex)
+    );
     const raw = localStorage.getItem("cashu.ndk.privateKeySignerPrivateKey");
     const parsed = JSON.parse(raw!);
     expect(typeof parsed).toBe("string");
@@ -358,17 +397,27 @@ describe("Wizard — Nostr key generation", () => {
 
   test("username stored as JSON string in localStorage", () => {
     const username = "satoshi";
-    localStorage.setItem("cashu.flashAddress.username", JSON.stringify(username));
+    localStorage.setItem(
+      "cashu.flashAddress.username",
+      JSON.stringify(username)
+    );
     const raw = localStorage.getItem("cashu.flashAddress.username");
     expect(JSON.parse(raw!)).toBe("satoshi");
   });
 
   test("StepNostrKey reads pendingUsername from localStorage correctly", () => {
-    localStorage.setItem("cashu.flashAddress.username", JSON.stringify("satoshi"));
+    localStorage.setItem(
+      "cashu.flashAddress.username",
+      JSON.stringify("satoshi")
+    );
     const pendingUsername = (() => {
       try {
-        return JSON.parse(localStorage.getItem("cashu.flashAddress.username") || "null");
-      } catch { return null; }
+        return JSON.parse(
+          localStorage.getItem("cashu.flashAddress.username") || "null"
+        );
+      } catch {
+        return null;
+      }
     })();
     expect(pendingUsername).toBe("satoshi");
   });
@@ -377,8 +426,12 @@ describe("Wizard — Nostr key generation", () => {
     localStorage.clear();
     const pendingUsername = (() => {
       try {
-        return JSON.parse(localStorage.getItem("cashu.flashAddress.username") || "null");
-      } catch { return null; }
+        return JSON.parse(
+          localStorage.getItem("cashu.flashAddress.username") || "null"
+        );
+      } catch {
+        return null;
+      }
     })();
     expect(pendingUsername).toBeNull();
   });
@@ -431,7 +484,10 @@ describe("Wallet store — balance computation", () => {
   test("balance is 0 with no proofs", async () => {
     const { useProofsStore } = await import("src/stores/proofs");
     const store = useProofsStore();
-    const balance = (store.proofs || []).reduce((s: number, p: { amount: number }) => s + p.amount, 0);
+    const balance = (store.proofs || []).reduce(
+      (s: number, p: { amount: number }) => s + p.amount,
+      0
+    );
     expect(balance).toBe(0);
   });
 
@@ -439,9 +495,22 @@ describe("Wallet store — balance computation", () => {
     const { useProofsStore } = await import("src/stores/proofs");
     const store = useProofsStore();
     // Inject mock proofs
-    (store.proofs as unknown[]).push({ amount: 100, id: "a", secret: "s", C: "c" });
-    (store.proofs as unknown[]).push({ amount: 250, id: "b", secret: "s2", C: "c2" });
-    const balance = (store.proofs || []).reduce((s: number, p: { amount: number }) => s + p.amount, 0);
+    (store.proofs as unknown[]).push({
+      amount: 100,
+      id: "a",
+      secret: "s",
+      C: "c",
+    });
+    (store.proofs as unknown[]).push({
+      amount: 250,
+      id: "b",
+      secret: "s2",
+      C: "c2",
+    });
+    const balance = (store.proofs || []).reduce(
+      (s: number, p: { amount: number }) => s + p.amount,
+      0
+    );
     expect(balance).toBe(350);
   });
 
@@ -484,9 +553,15 @@ describe("Destructive flows", () => {
   test("reset wallet clears all cashu localStorage keys", () => {
     // Set up state
     localStorage.setItem("cashu.flash.setupDone", "1");
-    localStorage.setItem("cashu.flashAddress.username", JSON.stringify("alice"));
+    localStorage.setItem(
+      "cashu.flashAddress.username",
+      JSON.stringify("alice")
+    );
     localStorage.setItem("cashu.flashAddress.enabled", JSON.stringify(true));
-    localStorage.setItem("cashu.ndk.privateKeySignerPrivateKey", JSON.stringify("a".repeat(64)));
+    localStorage.setItem(
+      "cashu.ndk.privateKeySignerPrivateKey",
+      JSON.stringify("a".repeat(64))
+    );
     localStorage.setItem("cashu.mints", JSON.stringify([{ url: FLASH_MINT }]));
     localStorage.setItem("cashu.price.bitcoinPrice", JSON.stringify(85000));
 
@@ -495,7 +570,9 @@ describe("Destructive flows", () => {
 
     expect(localStorage.getItem("cashu.flash.setupDone")).toBeNull();
     expect(localStorage.getItem("cashu.flashAddress.username")).toBeNull();
-    expect(localStorage.getItem("cashu.ndk.privateKeySignerPrivateKey")).toBeNull();
+    expect(
+      localStorage.getItem("cashu.ndk.privateKeySignerPrivateKey")
+    ).toBeNull();
   });
 
   test("disconnect flash address clears username and enabled flag", async () => {
@@ -517,10 +594,10 @@ describe("Destructive flows", () => {
     (store.mints as unknown[]).push({ url: url2, keys: [], keysets: [] });
     expect(store.mints.length).toBe(2);
     // Splice directly — tests the store data layer, not the network side-effect in removeMint
-    const mints = store.mints as {url: string}[];
-    const idx1 = mints.findIndex(m => m.url === url1);
+    const mints = store.mints as { url: string }[];
+    const idx1 = mints.findIndex((m) => m.url === url1);
     if (idx1 >= 0) mints.splice(idx1, 1);
-    const idx2 = mints.findIndex(m => m.url === url2);
+    const idx2 = mints.findIndex((m) => m.url === url2);
     if (idx2 >= 0) mints.splice(idx2, 1);
     expect(store.mints.length).toBe(0);
   });
@@ -535,12 +612,19 @@ describe("Destructive flows", () => {
   test("resetting clears all proof balances", async () => {
     const { useProofsStore } = await import("src/stores/proofs");
     const store = useProofsStore();
-    (store.proofs as unknown[]).push({ amount: 5000, id: "x", secret: "s", C: "c" });
+    (store.proofs as unknown[]).push({
+      amount: 5000,
+      id: "x",
+      secret: "s",
+      C: "c",
+    });
     expect(store.proofs.length).toBe(1);
 
     localStorage.clear();
     setActivePinia(createPinia()); // fresh pinia = fresh stores
-    const { useProofsStore: freshProofsStore } = await import("src/stores/proofs");
+    const { useProofsStore: freshProofsStore } = await import(
+      "src/stores/proofs"
+    );
     const freshStore = freshProofsStore();
     expect(freshStore.proofs.length).toBe(0);
   });
@@ -551,31 +635,41 @@ describe("Destructive flows", () => {
 describe("FlashSendDialog — QR decode routing", () => {
   test("cashuA token routes to ecash flow", () => {
     const val = "cashuAeyJ0b2tlbiI6InRlc3QifQ==";
-    const isEcash = val.toLowerCase().startsWith("cashua") || val.toLowerCase().startsWith("cashub");
+    const isEcash =
+      val.toLowerCase().startsWith("cashua") ||
+      val.toLowerCase().startsWith("cashub");
     expect(isEcash).toBe(true);
   });
 
   test("cashuB token routes to ecash flow", () => {
     const val = "cashuBeyJ0b2tlbiI6InRlc3QifQ==";
-    const isEcash = val.toLowerCase().startsWith("cashua") || val.toLowerCase().startsWith("cashub");
+    const isEcash =
+      val.toLowerCase().startsWith("cashua") ||
+      val.toLowerCase().startsWith("cashub");
     expect(isEcash).toBe(true);
   });
 
   test("bolt11 invoice routes to lightning flow", () => {
     const val = "lnbc1000n1p0test...";
-    const isEcash = val.toLowerCase().startsWith("cashua") || val.toLowerCase().startsWith("cashub");
+    const isEcash =
+      val.toLowerCase().startsWith("cashua") ||
+      val.toLowerCase().startsWith("cashub");
     expect(isEcash).toBe(false);
   });
 
   test("lightning address routes to lightning flow", () => {
     const val = "alice@ecash.flashapp.me";
-    const isEcash = val.toLowerCase().startsWith("cashua") || val.toLowerCase().startsWith("cashub");
+    const isEcash =
+      val.toLowerCase().startsWith("cashua") ||
+      val.toLowerCase().startsWith("cashub");
     expect(isEcash).toBe(false);
   });
 
   test("LNURL routes to lightning flow", () => {
     const val = "LNURL1DP68GURN8GHKZ...";
-    const isEcash = val.toLowerCase().startsWith("cashua") || val.toLowerCase().startsWith("cashub");
+    const isEcash =
+      val.toLowerCase().startsWith("cashua") ||
+      val.toLowerCase().startsWith("cashub");
     expect(isEcash).toBe(false);
   });
 

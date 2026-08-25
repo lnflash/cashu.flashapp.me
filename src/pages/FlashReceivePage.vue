@@ -160,7 +160,15 @@
           {{ invoice ? invoice.slice(0, 24) + "…" : "—" }}
         </div>
 
-        <div v-if="expiryTs" class="expiry-row" :class="{ 'expiry-warning': expiryWarning, 'expiry-expired': isExpired }" @click="isExpired ? generateInvoice() : null">
+        <div
+          v-if="expiryTs"
+          class="expiry-row"
+          :class="{
+            'expiry-warning': expiryWarning,
+            'expiry-expired': isExpired,
+          }"
+          @click="isExpired ? generateInvoice() : null"
+        >
           <span v-if="!isExpired">⏱ Expires in {{ expiryCountdown }}</span>
           <span v-else>Expired · <strong>Tap to generate new →</strong></span>
         </div>
@@ -221,7 +229,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, watch, onMounted, onUnmounted } from "vue";
+import {
+  defineComponent,
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onUnmounted,
+} from "vue";
 import VueQrcode from "@chenfengyuan/vue-qrcode";
 import { useFlashAddressStore } from "src/stores/flashAddress";
 import { useWalletStore } from "src/stores/wallet";
@@ -259,16 +274,20 @@ export default defineComponent({
       return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
     });
 
-    const FLASH_MINT = 'https://forge.flashapp.me';
+    const FLASH_MINT = "https://forge.flashapp.me";
 
     async function ensureFlashMint() {
       const mints = mintsStore.mints || [];
       const hasFlash = mints.some((m: any) => m.url === FLASH_MINT);
       if (!hasFlash) {
-        try { await mintsStore.addMint({ url: FLASH_MINT }) } catch {}
+        try {
+          await mintsStore.addMint({ url: FLASH_MINT });
+        } catch {}
       }
       if (!mintsStore.activeMintUrl) {
-        try { await mintsStore.activateMintUrl(FLASH_MINT, false, true) } catch {}
+        try {
+          await mintsStore.activateMintUrl(FLASH_MINT, false, true);
+        } catch {}
       }
     }
 
@@ -278,28 +297,34 @@ export default defineComponent({
       expiryTs.value = null;
       try {
         // Always use SAT for Lightning invoices (LNURL spec requires exact amount match)
-        const res = await fetch(FLASH_MINT + '/v1/mint/quote/bolt11', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: 1, unit: 'sat' })
+        const res = await fetch(FLASH_MINT + "/v1/mint/quote/bolt11", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 1, unit: "sat" }),
         });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
-        invoice.value = data.request || '';
+        invoice.value = data.request || "";
         if (data.expiry) expiryTs.value = data.expiry;
         // Store quote ID for later claiming
-        if (data.quote) localStorage.setItem('cashu.pendingReceiveQuote', JSON.stringify({ quote: data.quote, unit: 'sat' }));
+        if (data.quote)
+          localStorage.setItem(
+            "cashu.pendingReceiveQuote",
+            JSON.stringify({ quote: data.quote, unit: "sat" })
+          );
         // Decode expiry from bolt11 as fallback
         if (invoice.value && !expiryTs.value) {
           try {
             const d = decodeBolt11(invoice.value);
-            const ts = d.sections?.find((s: any) => s.name === "timestamp")?.value as number;
-            const exp = d.sections?.find((s: any) => s.name === "expiry")?.value as number;
+            const ts = d.sections?.find((s: any) => s.name === "timestamp")
+              ?.value as number;
+            const exp = d.sections?.find((s: any) => s.name === "expiry")
+              ?.value as number;
             if (ts && exp) expiryTs.value = ts + exp;
           } catch {}
         }
       } catch (e) {
-        console.error('[FlashReceive] generateInvoice failed:', e);
+        console.error("[FlashReceive] generateInvoice failed:", e);
       } finally {
         loadingInvoice.value = false;
       }
@@ -337,7 +362,7 @@ export default defineComponent({
 
     // Regenerate invoice when user switches to BTC invoice tab
     watch([tab, btcTab], ([newTab, newBtcTab]) => {
-      if (newTab === 'btc' && newBtcTab === 'invoice' && !invoice.value) {
+      if (newTab === "btc" && newBtcTab === "invoice" && !invoice.value) {
         generateInvoice();
       }
     });
@@ -348,7 +373,7 @@ export default defineComponent({
         now.value = Date.now();
       }, 1000);
       // Only generate invoice if we land on BTC invoice tab directly
-      if (tab.value === 'btc' && btcTab.value === 'invoice') {
+      if (tab.value === "btc" && btcTab.value === "invoice") {
         generateInvoice();
       }
     });

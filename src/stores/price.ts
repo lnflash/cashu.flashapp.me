@@ -51,8 +51,10 @@ export const usePriceStore = defineStore("price", {
         this.bitcoinPrices = data.data.rates;
         // Update the main bitcoinPrice to current selected currency for backward compatibility
         this.bitcoinPrice =
-          parseFloat(data.data.rates[settingsStore.bitcoinPriceCurrency] ||
-          data.data.rates.USD) || 0;
+          parseFloat(
+            data.data.rates[settingsStore.bitcoinPriceCurrency] ||
+              data.data.rates.USD
+          ) || 0;
         this.bitcoinPriceLastUpdated = Date.now();
       } catch (error) {
         console.error("Failed to fetch bitcoin price:", error);
